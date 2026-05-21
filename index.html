@@ -1,0 +1,2891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Indomitus">
+<meta name="theme-color" content="#000000">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCG Daily OS — Michael Hickmon</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#000;--bg2:#080808;--bg3:#0f0f0f;
+  --card:#0a0a0a;--card2:#111;
+  --border:#222;--border-mid:#333;--border-light:#1a1a1a;--border-hover:#555;
+  --text:#fff;--text-2:#ccc;--text-3:#888;--text-4:#444;
+  --urgent:#ff3333;--urgent-dim:rgba(255,51,51,0.12);
+  --warn:#ff9900;--warn-dim:rgba(255,153,0,0.10);
+  --green:#00cc66;--green-dim:rgba(0,204,102,0.10);
+  --blue:#4488ff;--blue-dim:rgba(68,136,255,0.08);
+  --purple:#9966ff;--purple-bg:rgba(153,102,255,0.10);
+  /* Legacy aliases so existing JS color refs still work */
+  --accent:#fff;--gold:#fff;--hextech:#fff;--hextech2:#ccc;
+  --red:var(--urgent);--amber:var(--warn);
+  --green-bg:var(--green-dim);--blue-bg:var(--blue-dim);
+  --amber-bg:var(--warn-dim);--red-bg:var(--urgent-dim);
+  --border-glow:var(--border-hover);--border-gold:var(--border-mid);
+  --glow:none;--shadow:0 1px 0 var(--border);
+  --radius:4px;--radius-sm:2px;
+  --font-display:'Orbitron',monospace;
+  --font-mono:'Share Tech Mono',monospace;
+  --font-body:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+.app{display:flex;flex-direction:column;min-height:100vh;position:relative;z-index:1}
+
+/* TOPBAR */
+.topbar{background:rgba(0,0,0,0.95);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:48px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.logo{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:0.06em}
+.logo-sub{display:none}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.date-badge{font-family:var(--font-mono);font-size:10px;color:var(--text-4);letter-spacing:0.06em;padding:0}
+.topbar-right{font-family:var(--font-mono);font-size:10px;color:var(--text-4);letter-spacing:0.06em}
+
+/* TABS */
+.tab-bar{background:rgba(0,0,0,0.95);border-bottom:1px solid var(--border);padding:0;display:flex;position:sticky;top:0;z-index:80;width:100%}
+.tab{flex:1;padding:14px 8px;font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-4);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color 0.15s;letter-spacing:0.14em;text-transform:uppercase;position:relative;margin-bottom:-1px;text-align:center}
+.tab:hover{color:var(--text-2)}
+.tab.active{color:var(--text);border-bottom-color:var(--text)}
+
+/* CONTENT */
+.content{padding:2rem 2.5rem;width:100%;flex:1;position:relative;z-index:2}
+.vs{display:none}.vs.active{display:block;animation:fadein 0.2s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;transition:border-color 0.12s}
+.card:hover{border-color:var(--border-mid)}
+.card-sm{padding:1rem}
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:8px;flex-wrap:wrap}
+.ct{font-family:var(--font-display);font-size:9px;font-weight:700;color:var(--text-3);letter-spacing:0.14em;text-transform:uppercase}
+.ct-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-4);margin-top:3px}
+
+/* BUTTONS */
+.btn{font-family:var(--font-display);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 14px;border:1px solid var(--border-mid);border-radius:var(--radius-sm);cursor:pointer;background:transparent;color:var(--text-3);white-space:nowrap;transition:all 0.12s}
+.btn:hover{background:var(--card2);border-color:var(--border-hover);color:var(--text)}
+.btn-dark{background:var(--card2);color:var(--text-2);border-color:var(--border-mid)}
+.btn-dark:hover{background:var(--bg3);color:var(--text);border-color:var(--border-hover)}
+.btn-green{background:var(--green-dim);color:var(--green);border-color:rgba(0,204,102,0.25)}
+.btn-green:hover{background:rgba(0,204,102,0.18)}
+.btn-sm{font-size:8px;padding:4px 10px}
+.btn-del{font-size:11px;padding:4px 8px;border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;background:transparent;color:var(--text-4);line-height:1;transition:all 0.12s}
+.btn-del:hover{background:var(--urgent-dim);color:var(--urgent);border-color:rgba(255,51,51,0.2)}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select.fs{font-family:var(--font-mono);font-size:11px;padding:6px 10px;border:1px solid var(--border-mid);border-radius:var(--radius-sm);background:var(--card2);color:var(--text-2);cursor:pointer}
+select.fs:focus{outline:none;border-color:var(--border-hover)}
+
+/* METRICS */
+.mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:1.5rem}
+.met{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color 0.12s}
+.met:hover{border-color:var(--border-mid)}
+.met-label{font-family:var(--font-display);font-size:8px;color:var(--text-4);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.14em}
+.met-val{font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1;color:var(--text)}
+.met-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-4);margin-top:6px}
+
+/* TASKS */
+.exec-section{margin-bottom:1.5rem}
+.exec-section-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-light)}
+.exec-section-title{font-family:var(--font-display);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-4)}
+.exec-section-count{font-family:var(--font-mono);font-size:10px;color:var(--text-3);background:var(--card2);padding:2px 8px;border-radius:2px;border:1px solid var(--border)}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border-light);cursor:pointer;transition:all 0.1s;position:relative}
+.task-item:last-child{border-bottom:none}
+.task-item:hover{background:var(--card2);padding:13px 8px;margin:0 -8px;border-radius:var(--radius-sm)}
+.task-check{width:16px;height:16px;border:1px solid var(--border-mid);border-radius:2px;flex-shrink:0;margin-top:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.1s}
+.task-check:hover{border-color:var(--green)}
+.task-check.checked{background:var(--green);border-color:var(--green)}
+.task-check.checked::after{content:'✓';color:#000;font-size:10px;font-weight:700}
+.task-content{flex:1}
+.task-text{font-size:14px;color:var(--text);line-height:1.45;font-weight:500}
+.task-text.done{text-decoration:line-through;color:var(--text-4);font-weight:400}
+.task-meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center}
+.task-note{font-family:var(--font-mono);font-size:10px;color:var(--text-4);margin-top:5px;line-height:1.45}
+
+/* PILLS — color only where it signals something */
+.pill{font-family:var(--font-display);font-size:8px;padding:2px 7px;border-radius:2px;font-weight:700;white-space:nowrap;display:inline-block;letter-spacing:0.06em;text-transform:uppercase}
+.p-urgent{background:var(--urgent-dim);color:var(--urgent);border:1px solid rgba(255,51,51,0.3)}
+.p-high{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(255,153,0,0.25)}
+.p-med{background:var(--card2);color:var(--text-3);border:1px solid var(--border)}
+.p-low{background:transparent;color:var(--text-4);border:1px solid var(--border-light)}
+.p-personal,.p-business{background:var(--card2);color:var(--text-3);border:1px solid var(--border)}
+.p-done{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,204,102,0.2)}
+
+/* TAGS — all neutral */
+.tag{font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:2px;font-weight:500;display:inline-block;white-space:nowrap}
+.tag-ind,.tag-health,.tag-fin,.tag-tech,.tag-hoit,.tag-terra,.tag-hcg,.tag-personal{background:var(--card2);color:var(--text-3);border:1px solid var(--border)}
+
+/* PRIORITY DOTS */
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:7px}
+.pdot-urgent{background:var(--urgent)}.pdot-high{background:var(--warn)}.pdot-med{background:var(--text-4)}.pdot-low{background:var(--border-mid)}
+
+/* INVESTOR TABLE */
+.inv-table{width:100%;border-collapse:collapse;font-size:14px;min-width:750px}
+.inv-table th{text-align:left;font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--text-4);padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;user-select:none;white-space:nowrap;background:var(--card2)}
+.inv-table th:hover{color:var(--text-2)}
+.inv-table th.asc::after{content:' ↑';opacity:0.4}.inv-table th.desc::after{content:' ↓';opacity:0.4}
+.inv-table td{padding:10px;border-bottom:1px solid var(--border-light);vertical-align:middle;transition:background 0.1s}
+.inv-table tr:last-child td{border-bottom:none}
+.inv-table tr:hover td{background:var(--card2);cursor:pointer}
+.inv-name{font-weight:600;color:var(--text)}
+.inv-contact{font-family:var(--font-mono);font-size:10px;color:var(--text-4);margin-top:2px}
+
+/* STAGE PILLS */
+.s-qualified,.s-hold,.s-pass-us{background:var(--card2);color:var(--text-3);border:1px solid var(--border)}
+.s-pitched{background:var(--card2);color:var(--text-2);border:1px solid var(--border-mid)}
+.s-engaged{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(68,136,255,0.2)}
+.s-diligence{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(255,153,0,0.25)}
+.s-decision{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(255,153,0,0.2)}
+.s-committed{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,204,102,0.25)}
+.s-pass-known{background:var(--urgent-dim);color:var(--urgent);border:1px solid rgba(255,51,51,0.2)}
+.s-pass-unknown{background:var(--card2);color:var(--text-4);border:1px solid var(--border)}
+.tag-full{background:var(--green-dim);color:var(--green);font-size:10px;padding:2px 7px;border-radius:2px;font-family:var(--font-mono);font-weight:600;display:inline-block;border:1px solid rgba(0,204,102,0.2)}
+.tag-shared{background:var(--warn-dim);color:var(--warn);font-size:10px;padding:2px 7px;border-radius:2px;font-family:var(--font-mono);font-weight:600;display:inline-block;border:1px solid rgba(255,153,0,0.2)}
+.tag-no{background:transparent;color:var(--text-4);font-size:10px;padding:2px 7px;border-radius:2px;display:inline-block;border:1px solid var(--border-light)}
+.mom{display:inline-block;width:8px;height:8px;border-radius:50%}
+.mom-g{background:var(--green)}.mom-y{background:var(--warn)}.mom-r{background:var(--urgent)}
+.blocker{font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:2px;background:var(--warn-dim);color:var(--warn);border:1px solid rgba(255,153,0,0.15);font-weight:500;display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* FUNNEL */
+.funnel{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:1.25rem}
+.f-stage{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 8px;text-align:center;cursor:pointer;transition:border-color 0.12s}
+.f-stage:hover{border-color:var(--border-mid)}
+.f-label{font-family:var(--font-display);font-size:7px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px}
+.f-count{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--text)}
+.f-amt{font-family:var(--font-mono);font-size:10px;color:var(--text-4);margin-top:2px}
+.f-bar{height:2px;border-radius:1px;background:var(--border);margin-top:8px;overflow:hidden}
+.f-fill{height:100%;border-radius:1px}
+
+/* PLATFORM CARDS */
+.platform-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:1.5rem}
+.platform-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:border-color 0.12s}
+.platform-card:hover{border-color:var(--border-mid)}
+.pc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.pc-name{font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--text);letter-spacing:0.1em}
+.pc-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-4);margin-top:3px}
+.pc-amount{font-family:var(--font-display);font-size:18px;font-weight:700;margin:10px 0;color:var(--text)}
+.pc-bar{height:2px;background:var(--border);border-radius:1px;margin:8px 0;overflow:hidden}
+.pc-fill{height:100%;border-radius:1px}
+.pc-stats{display:flex;gap:12px;flex-wrap:wrap}
+.pc-stat{font-family:var(--font-mono);font-size:11px;color:var(--text-4)}
+.pc-stat span{font-weight:600;color:var(--text-2)}
+
+/* INSIGHT */
+.insight{background:var(--card2);border:1px solid var(--border-mid);border-left:2px solid var(--text-3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:1rem;font-family:var(--font-mono);font-size:12px;color:var(--text-3);line-height:1.6}
+.insight::before{content:'ALERT';display:block;font-family:var(--font-display);font-size:8px;color:var(--text-4);letter-spacing:0.14em;margin-bottom:5px}
+
+/* MODAL */
+.mo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:200;align-items:center;justify-content:center}
+.mb{background:var(--bg3);border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.75rem;width:92%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+.mt{font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--text);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:1.25rem;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-family:var(--font-display);font-size:8px;color:var(--text-4);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em}
+.fg input,.fg select,.fg textarea{width:100%;font-family:var(--font-mono);font-size:12px;padding:8px 10px;border:1px solid var(--border-mid);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);transition:border-color 0.12s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--border-hover)}
+.fg textarea{resize:vertical;min-height:72px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;flex-wrap:wrap}
+
+/* DETAIL */
+.det-o{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:200;align-items:center;justify-content:center}
+.det-b{background:var(--bg3);border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.75rem;width:92%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+.drow{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:13px}
+.drow:last-child{border-bottom:none}
+.dl{font-family:var(--font-mono);color:var(--text-4);font-size:11px;flex-shrink:0;padding-top:1px}
+.dv{font-weight:500;text-align:right;max-width:65%;color:var(--text)}
+.sl{font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.14em;margin:1.25rem 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.log-e{font-family:var(--font-mono);padding:6px 0;border-bottom:1px solid var(--border-light);font-size:11px;color:var(--text-4)}
+.log-e:last-child{border-bottom:none}
+.log-e::before{content:"— ";color:var(--text-4)}
+.table-wrap{overflow-x:auto}
+
+/* EMPTY STATE */
+.empty{font-family:var(--font-mono);font-size:12px;color:var(--text-4);padding:2rem 0;text-align:center;letter-spacing:0.05em}
+
+/* SCORECARD */
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:1rem}
+.sc-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;transition:border-color 0.12s}
+.sc-card:hover{border-color:var(--border-mid)}
+.sc-label{font-family:var(--font-display);font-size:8px;color:var(--text-4);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px}
+.sc-val{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1;margin-bottom:3px}
+.sc-target{font-family:var(--font-mono);font-size:10px;color:var(--text-4)}
+.sc-green{color:var(--green)}.sc-amber{color:var(--warn)}.sc-red{color:var(--urgent)}
+
+/* PLATFORM SUB-TABS */
+.plat-sub-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto}
+.pst{padding:8px 14px;font-family:var(--font-display);font-size:8px;font-weight:600;color:var(--text-4);cursor:pointer;border-bottom:1px solid transparent;white-space:nowrap;transition:color 0.12s;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:-1px}
+.pst:hover{color:var(--text-2)}.pst.active{color:var(--text);border-bottom-color:var(--text)}
+.pst-view{display:none}.pst-view.active{display:block}
+
+/* ROCKS */
+.rock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;margin-bottom:1rem}
+.rock-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.rock-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.rock-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;flex:1}
+.rock-on{background:var(--green-dim);color:var(--green);font-family:var(--font-display);font-size:7px;font-weight:700;padding:2px 8px;border-radius:2px;white-space:nowrap;border:1px solid rgba(0,204,102,0.2)}
+.rock-risk{background:var(--warn-dim);color:var(--warn);font-family:var(--font-display);font-size:7px;font-weight:700;padding:2px 8px;border-radius:2px;white-space:nowrap;border:1px solid rgba(255,153,0,0.2)}
+.rock-off{background:var(--urgent-dim);color:var(--urgent);font-family:var(--font-display);font-size:7px;font-weight:700;padding:2px 8px;border-radius:2px;white-space:nowrap;border:1px solid rgba(255,51,51,0.2)}
+.rock-meta{font-family:var(--font-mono);font-size:10px;color:var(--text-4);margin-top:4px}
+.rock-progress{height:2px;background:var(--border);border-radius:1px;margin:8px 0;overflow:hidden}
+.rock-fill{height:100%;border-radius:1px;transition:width 0.3s}
+
+/* ISSUES */
+.issue-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-light)}
+.issue-item:last-child{border-bottom:none}
+.issue-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.issue-open{background:var(--urgent)}.issue-ids{background:var(--warn)}.issue-solved{background:var(--green)}
+
+/* ACQ STAGES */
+.a-sourcing{background:var(--card2);color:var(--text-3);border:1px solid var(--border)}
+.a-loi{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(68,136,255,0.2)}
+.a-diligence{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(255,153,0,0.2)}
+.a-negotiating{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(255,153,0,0.2)}
+.a-closed,.a-operating{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,204,102,0.2)}
+.a-planning{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(68,136,255,0.15)}
+.a-dead{background:var(--urgent-dim);color:var(--urgent);border:1px solid rgba(255,51,51,0.15)}
+
+/* MISC */
+.sec-div{font-family:var(--font-display);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-4);margin:1.5rem 0 0.75rem;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.today-badge{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-3);background:var(--bg2);padding:3px 10px;border-radius:2px;border:1px solid var(--border)}
+#view-vto .fg{margin-bottom:12px}
+
+/* BACKGROUND DODECAHEDRON CANVAS */
+#dodeca-bg-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;display:none;min-height:100vh}
+#brief-bg-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.82);pointer-events:none;z-index:1;display:none;min-height:100vh}
+#view-brief{position:relative}
+.brief-inner{position:relative;z-index:2}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-4)}
+
+/* ── HERO SECTION ─────────────────────────────────────── */
+#hero-section{
+  position:relative;
+  width:100%;
+  height:220px;
+  background:#000;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid var(--border);
+}
+#hero-canvas{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  display:block;
+}
+#hero-title{
+  position:relative;
+  z-index:10;
+  text-align:center;
+  pointer-events:none;
+  user-select:none;
+}
+#hero-title .main{
+  font-family:'Cinzel',serif;
+  font-size:24px;
+  font-weight:600;
+  color:rgba(255,255,255,0.9);
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  display:block;
+  line-height:1;
+}
+#hero-title .sub{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--text-4);
+  letter-spacing:0.28em;
+  text-transform:uppercase;
+  display:block;
+  margin-top:10px;
+}
+@keyframes hero-pulse{
+  0%,100%{opacity:0.85}
+  50%{opacity:1}
+}
+#hero-title .main{animation:hero-pulse 4s ease-in-out infinite}
+
+/* ── MOBILE RESPONSIVE ───────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Hero — smaller on mobile */
+  #hero-section { height: 160px; }
+  #hero-title .main { font-size: 16px; letter-spacing: 0.1em; }
+
+  /* Tabs — scrollable on mobile, don't force equal width */
+  .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab { flex: 0 0 auto; padding: 12px 14px; font-size: 9px; letter-spacing: 0.08em; }
+
+  /* Content — tighter padding */
+  .content { padding: 1rem; }
+
+  /* Two-column layout → single column */
+  div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Metrics row — 2 columns on mobile */
+  .mrow { grid-template-columns: 1fr 1fr; }
+
+  /* Funnel — 3 columns on mobile instead of 6 */
+  .funnel { grid-template-columns: repeat(3, 1fr); }
+
+  /* Platform grid — single column */
+  .platform-grid { grid-template-columns: 1fr; }
+
+  /* Rock grid — single column */
+  .rock-grid { grid-template-columns: 1fr; }
+
+  /* Scorecard grid — 2 columns */
+  .sc-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Form rows — single column */
+  .fr2 { grid-template-columns: 1fr; }
+
+  /* Investor table — scrollable */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .inv-table { font-size: 12px; }
+  .inv-table td, .inv-table th { padding: 7px 6px; }
+
+  /* Cards — less padding */
+  .card { padding: 1rem; }
+
+  /* Task items — smaller */
+  .task-text { font-size: 13px; }
+
+  /* Modals — full width */
+  .mb, .det-b { width: 96%; padding: 1.25rem; }
+
+  /* Card headers — stack on mobile */
+  .ch { flex-direction: column; gap: 10px; }
+  .ch .controls { width: 100%; justify-content: flex-start; }
+
+  /* Buttons — easier to tap */
+  .btn { padding: 9px 14px; font-size: 9px; }
+  .btn-sm { padding: 7px 12px; }
+
+  /* Met value smaller */
+  .met-val { font-size: 24px; }
+
+  /* Intel feed tabs — scrollable */
+  div[style*="display:flex;gap:0;border-bottom"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* RSS articles — readable on mobile */
+  #rss-feed-container div { padding: 10px 0; }
+
+  /* Hide blocker text overflow on mobile */
+  .blocker { max-width: 120px; }
+
+  /* Platform sub tabs */
+  .plat-sub-tabs { overflow-x: auto; }
+
+  /* Brief date heading */
+  #brief-date-heading { font-size: 16px !important; }
+}
+
+@media (max-width: 480px) {
+  /* Extra small phones */
+  .mrow { grid-template-columns: 1fr; }
+  .funnel { grid-template-columns: repeat(2, 1fr); }
+  .sc-grid { grid-template-columns: 1fr; }
+  #hero-section { height: 130px; }
+  #hero-title .main { font-size: 13px; }
+  .tab { padding: 10px 10px; font-size: 8px; }
+  .met-val { font-size: 20px; }
+  .content { padding: 0.75rem; }
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Orbitron:wght@400;500;600;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+
+
+<div id="hero-section">
+  <canvas id="hero-canvas"></canvas>
+  <div id="hero-title">
+    <span class="main">Indomitus Interface</span>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="sv('brief',this)">Daily Brief</div>
+  <div class="tab" onclick="sv('platforms',this)">Platforms</div>
+  <div class="tab" onclick="sv('acquisitions',this)">Acquisitions</div>
+  <div class="tab" onclick="sv('investors',this)">Investors</div>
+  <div class="tab" onclick="sv('projects',this)">Projects</div>
+  <div class="tab" onclick="sv('personal',this)">Personal</div>
+  <div class="tab" onclick="sv('intel',this)">Intel</div>
+</div>
+
+<span id="top-date" style="display:none"></span>
+<div class="content">
+
+<!-- ===== DAILY BRIEF ===== -->
+<div class="vs active" id="view-brief" style="position:relative;overflow:hidden">
+<canvas id="dodeca-bg-canvas"></canvas>
+<div id="brief-bg-overlay"></div>
+<div class="brief-inner">
+
+  <!-- DATE + PROGRESS -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:22px;font-weight:700;color:var(--text)" id="brief-date-heading"></div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="brief-sub"></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:var(--text-2)" id="top-progress-brief"></div>
+  </div>
+
+  <!-- TODAY'S SCHEDULE -->
+  <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;box-shadow:var(--shadow)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em">📅 Today's Schedule</div>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-4)" id="sched-date-label"></span>
+    </div>
+    <div id="cal-events"><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);padding:8px 0">No events — add via WIT each morning</div></div>
+  </div>
+
+  <!-- METRICS ROW -->
+  <div class="mrow" id="brief-mets"></div>
+
+  <!-- TWO COLUMN: Execution left, Intel right -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start">
+    <div class="card" style="margin-bottom:0">
+      <div class="ch">
+        <div><div class="ct">Today's execution list</div><div class="ct-sub">Project deliverables first · then by priority</div></div>
+        <div class="controls">
+          <select class="fs" id="exec-filter" onchange="rExec()">
+            <option value="all">All items</option>
+            <option value="project">Project tasks only</option>
+            <option value="urgent">Urgent only</option>
+            <option value="open">Open only</option>
+            <option value="personal">Personal only</option>
+          </select>
+          <button class="btn btn-dark" onclick="openTaskModal()">+ Add to-do</button>
+        </div>
+      </div>
+      <div id="exec-list"></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="ch">
+        <div><div class="ct">Business Intel</div><div class="ct-sub">Live feeds · click to read</div></div>
+        <div class="controls">
+          <button class="btn btn-sm" onclick="rssCache={};loadRSSFeed(currentFeed)">&#8635; Refresh</button>
+          <button class="btn btn-dark btn-sm" onclick="generateBriefing()">&#10022; AI Brief</button>
+        </div>
+      </div>
+      <div id="ai-briefing" style="display:none;margin-bottom:12px;padding:12px;background:var(--card2);border:1px solid var(--border-mid);border-radius:var(--radius-sm)">
+        <div style="font-family:var(--font-display);font-size:8px;color:var(--text-4);letter-spacing:0.12em;margin-bottom:8px">AI MORNING BRIEFING</div>
+        <div id="ai-briefing-text" style="font-size:13px;color:var(--text-2);line-height:1.7;white-space:pre-wrap"></div>
+      </div>
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:10px;overflow-x:auto">
+        <div onclick="switchFeed('markets',this)" style="padding:6px 12px;font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--text);border-bottom:1px solid var(--text);cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;margin-bottom:-1px">Markets</div>
+        <div onclick="switchFeed('deals',this)" style="padding:6px 12px;font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--text-4);border-bottom:1px solid transparent;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;margin-bottom:-1px">M&amp;A / PE</div>
+        <div onclick="switchFeed('health',this)" style="padding:6px 12px;font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--text-4);border-bottom:1px solid transparent;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;margin-bottom:-1px">Healthcare</div>
+        <div onclick="switchFeed('arkansas',this)" style="padding:6px 12px;font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--text-4);border-bottom:1px solid transparent;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;margin-bottom:-1px">Arkansas</div>
+        <div onclick="switchFeed('plastics',this)" style="padding:6px 12px;font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--text-4);border-bottom:1px solid transparent;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;margin-bottom:-1px">Plastics</div>
+      </div>
+      <div id="rss-feed-container" style="max-height:560px;overflow-y:auto"><div class="empty">Loading feeds...</div></div>
+    </div>
+  </div>
+
+  <!-- SCORECARD -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ch">
+      <div><div class="ct">HCG Scorecard</div><div class="ct-sub">Auto-calculated · updates as you complete tasks and close deals</div></div>
+    </div>
+    <div class="sc-grid" id="brief-scorecard"></div>
+  </div>
+
+</div>
+
+  <!-- MORNING INTEL STRIP -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ch">
+      <div><div class="ct">Morning Intel</div><div class="ct-sub">Top headlines · click to read full article</div></div>
+      <button class="btn btn-sm" onclick="intelCache={};fetchIntel('brief')">↻ Refresh</button>
+    </div>
+    <div id="morning-intel-feed"><div class="empty" style="padding:0.75rem 0">Loading...</div></div>
+  </div>
+</div><!-- /brief-inner -->
+
+<!-- ===== PLATFORMS ===== -->
+<div class="vs" id="view-platforms">
+  <div class="mrow" id="plat-mets"></div>
+  <div class="platform-grid" id="platform-cards"></div>
+
+  <!-- Platform sub-tabs -->
+  <div class="plat-sub-tabs">
+    <div class="pst active" onclick="switchPlatTab('tasks',this)">Tasks</div>
+    <div class="pst" onclick="switchPlatTab('issues',this)">Issues</div>
+    <div class="pst" onclick="switchPlatTab('scorecard',this)">Scorecard</div>
+  </div>
+
+  <!-- TASKS sub-view -->
+  <div class="pst-view active" id="pv-tasks">
+    <div class="card">
+      <div class="ch">
+        <div class="ct">Platform tasks</div>
+        <div class="controls">
+          <select class="fs" id="plat-filter" onchange="rPlatTasks()">
+            <option value="all">All platforms</option>
+            <option value="capital">Hix Capital</option>
+            <option value="industries">Hix Industries</option>
+            <option value="health">Hix Health</option>
+            <option value="financial">Hix Financial</option>
+            <option value="terra">HixTerra</option>
+            <option value="hixtech">HixTech</option>
+            <option value="hcg">HCG Enterprise</option>
+          </select>
+          <select class="fs" id="plat-priority-filter" onchange="rPlatTasks()">
+            <option value="all">All priorities</option>
+            <option value="urgent">Urgent</option>
+            <option value="high">High</option>
+            <option value="med">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <button class="btn btn-dark" onclick="openTaskModal()">+ Add task</button>
+        </div>
+      </div>
+      <div id="plat-task-list"></div>
+    </div>
+  </div>
+
+  <!-- ISSUES sub-view -->
+  <div class="pst-view" id="pv-issues">
+    <div class="card">
+      <div class="ch">
+        <div><div class="ct">Issues list (IDS)</div><div class="ct-sub">Identify · Discuss · Solve. Surface blockers before they become crises.</div></div>
+        <div class="controls">
+          <select class="fs" id="issue-plat-filter" onchange="rIssues()">
+            <option value="all">All platforms</option>
+            <option value="industries">Hix Industries</option>
+            <option value="health">Hix Health</option>
+            <option value="financial">Hix Financial</option>
+            <option value="hixtech">HixTech</option>
+            <option value="capital">Hix Capital</option>
+            <option value="hcg">HCG</option>
+          </select>
+          <select class="fs" id="issue-status-filter" onchange="rIssues()">
+            <option value="open">Open only</option>
+            <option value="all">All</option>
+            <option value="ids">In IDS</option>
+            <option value="solved">Solved</option>
+          </select>
+          <button class="btn btn-dark" onclick="openIssueModal()">+ Add issue</button>
+        </div>
+      </div>
+      <div id="issues-list"></div>
+    </div>
+  </div>
+
+  <!-- SCORECARD sub-view -->
+  <div class="pst-view" id="pv-scorecard">
+    <div id="plat-scorecard-content"></div>
+  </div>
+
+</div>
+
+<!-- ===== INVESTORS ===== -->
+<div class="vs" id="view-investors">
+  <div class="mrow" id="inv-mets"></div>
+  <div id="inv-insight"></div>
+  <div class="funnel" id="funnel"></div>
+  <div class="card">
+    <div class="ch">
+      <div class="ct">Investor pipeline</div>
+      <div class="controls">
+        <select class="fs" id="inv-raise-filter" onchange="rInvTable()">
+          <option value="all">All raises</option>
+          <option value="industries">Hix Industries</option>
+          <option value="health">Hix Health</option>
+          <option value="financial">Hix Financial</option>
+          <option value="tbd">TBD</option>
+        </select>
+        <select class="fs" id="inv-stage-filter" onchange="rInvTable()">
+          <option value="active">Active only</option>
+          <option value="all">All stages</option>
+          <option value="qualified">Qualified</option>
+          <option value="pitched">Pitched</option>
+          <option value="engaged">Engaged</option>
+          <option value="diligence">In diligence</option>
+          <option value="decision">Decision pending</option>
+          <option value="committed">Committed</option>
+          <option value="hold">On hold</option>
+        </select>
+        <button class="btn btn-dark" onclick="openInvModal()">+ Add investor</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="inv-table">
+        <thead><tr>
+          <th onclick="sortInv('name',this)">Investor</th>
+          <th onclick="sortInv('raise',this)">Raise</th>
+          <th onclick="sortInv('amount',this)">Est. check</th>
+          <th onclick="sortInv('stage',this)">Stage</th>
+          <th>Next step</th>
+          <th>NDA</th>
+          <th>Data room</th>
+          <th onclick="sortInv('momentum',this)">Momentum</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="inv-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Passed investors</div></div>
+    <div class="table-wrap">
+      <table class="inv-table">
+        <thead><tr><th>Investor</th><th>Status</th><th>NDA</th><th>Reason</th><th>Re-engage?</th></tr></thead>
+        <tbody id="passed-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <div><div class="ct">Investor data requests</div><div class="ct-sub">Outstanding items investors have asked for</div></div>
+      <button class="btn btn-dark" onclick="openDRModal()">+ Add request</button>
+    </div>
+    <div id="dr-open"></div>
+    <div id="dr-done"></div>
+  </div>
+</div>
+
+<!-- ===== PERSONAL ===== -->
+<div class="vs" id="view-personal">
+  <div class="card">
+    <div class="ch">
+      <div>
+        <div class="ct">Personal tasks & commitments</div>
+        <div class="ct-sub">These appear in your Daily Brief execution list labeled as personal</div>
+      </div>
+      <button class="btn btn-dark" onclick="openTaskModal('personal')">+ Add personal item</button>
+    </div>
+    <div id="personal-list"></div>
+  </div>
+</div>
+
+<!-- ===== PROJECTS ===== -->
+<div class="vs" id="view-projects">
+  <div class="mrow" id="proj-mets"></div>
+
+  <!-- Platform tabs -->
+  <div class="plat-sub-tabs" id="proj-tab-bar">
+    <div class="pst active" onclick="setProjTab('all',this)">All Projects</div>
+    <div class="pst" onclick="setProjTab('capital',this)">Hix Capital</div>
+    <div class="pst" onclick="setProjTab('industries',this)">Hix Industries</div>
+    <div class="pst" onclick="setProjTab('health',this)">Hix Health</div>
+    <div class="pst" onclick="setProjTab('financial',this)">Hix Financial</div>
+    <div class="pst" onclick="setProjTab('terra',this)">HixTerra</div>
+    <div class="pst" onclick="setProjTab('hixtech',this)">HixTech</div>
+    <div class="pst" onclick="setProjTab('hcg',this)">HCG</div>
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <div><div class="ct" id="proj-tab-title">All Projects</div><div class="ct-sub">Every structured initiative across HCG</div></div>
+      <div class="controls">
+        <select class="fs" id="proj-status-filter" onchange="rProjects()">
+          <option value="active">Active</option>
+          <option value="all">All</option>
+          <option value="complete">Complete</option>
+          <option value="paused">Paused</option>
+        </select>
+        <button class="btn btn-dark" onclick="openProjModal()">+ New project</button>
+      </div>
+    </div>
+    <div id="proj-list"></div>
+  </div>
+</div>
+
+<!-- ===== ACQUISITIONS ===== -->
+<div class="vs" id="view-acquisitions">
+  <div class="mrow" id="acq-mets"></div>
+
+  <!-- Platform tabs -->
+  <div class="plat-sub-tabs" id="acq-tab-bar">
+    <div class="pst active" onclick="setAcqTab('all',this)">All Acquisitions</div>
+    <div class="pst" onclick="setAcqTab('capital',this)">Hix Capital</div>
+    <div class="pst" onclick="setAcqTab('industries',this)">Hix Industries</div>
+    <div class="pst" onclick="setAcqTab('health',this)">Hix Health</div>
+    <div class="pst" onclick="setAcqTab('financial',this)">Hix Financial</div>
+    <div class="pst" onclick="setAcqTab('terra',this)">HixTerra</div>
+    <div class="pst" onclick="setAcqTab('hixtech',this)">HixTech</div>
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <div><div class="ct" id="acq-tab-title">All Acquisitions</div><div class="ct-sub">Stage · value · blockers · next steps</div></div>
+      <div class="controls">
+        <select class="fs" id="acq-stage-filter" onchange="rAcqTable()">
+          <option value="active">Active only</option>
+          <option value="all">All stages</option>
+          <option value="sourcing">Sourcing</option>
+          <option value="loi">LOI</option>
+          <option value="diligence">Diligence</option>
+          <option value="negotiating">Negotiating</option>
+          <option value="closed">Closed</option>
+          <option value="operating">Operating</option>
+          <option value="planning">Planning</option>
+        </select>
+        <button class="btn btn-dark" onclick="openAcqEditModal()">+ Add deal</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="inv-table">
+        <thead><tr>
+          <th onclick="sortAcq('name',this)">Deal / Target</th>
+          <th onclick="sortAcq('platform',this)">Platform</th>
+          <th onclick="sortAcq('value',this)">Value</th>
+          <th onclick="sortAcq('stage',this)">Stage</th>
+          <th>Blocker / Next step</th>
+          <th onclick="sortAcq('owner',this)">Owner</th>
+          <th>Last update</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="acq-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Closed / Operating</div></div>
+    <div class="table-wrap">
+      <table class="inv-table">
+        <thead><tr><th>Deal</th><th>Platform</th><th>Value</th><th>Multiple</th><th>Status</th></tr></thead>
+        <tbody id="acq-closed-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== INTEL ===== -->
+<div class="vs" id="view-intel"><div id="intel-full-container"></div></div>
+
+</div><!-- /content -->
+</div><!-- /app -->
+
+<!-- TASK MODAL -->
+<div class="mo" id="task-mo" onclick="if(event.target===this)closeTaskModal()">
+  <div class="mb">
+    <div class="mt" id="task-mo-title">Add item</div>
+    <div class="fg"><label>Task / action</label><input type="text" id="t-text" placeholder="What needs to happen?"></div>
+    <div class="fr2">
+      <div class="fg"><label>Type</label>
+        <select id="t-type">
+          <option value="business">Business</option>
+          <option value="personal">Personal</option>
+        </select>
+      </div>
+      <div class="fg"><label>Platform</label>
+        <select id="t-platform">
+          <option value="hcg">HCG Enterprise</option>
+          <option value="industries">Hix Industries</option>
+          <option value="health">Hix Health</option>
+          <option value="financial">Hix Financial</option>
+          <option value="hixtech">HixTech</option>
+          <option value="terra">HixTerra</option>
+          <option value="capital">Hix Capital</option>
+          <option value="personal">Personal</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Due date</label>
+        <input type="date" id="t-due">
+      </div>
+      <div class="fg"><label>Urgent override</label>
+        <select id="t-urgent">
+          <option value="no">No</option>
+          <option value="yes">Yes — pin to top</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Owner</label>
+        <select id="t-owner">
+          <option value="Michael">Michael</option>
+          <option value="Slade">Slade</option>
+          <option value="Team">Team</option>
+        </select>
+      </div>
+      <div class="fg"><label>Priority (hidden — for sort)</label>
+        <input type="hidden" id="t-priority" value="med">
+      </div>
+    </div>
+    <div class="fg"><label>Notes / context</label><textarea id="t-notes" placeholder="Context, blockers, who to call, what to say..."></textarea></div>
+    <div class="ma">
+      <button class="btn" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveTask()">Save item</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVESTOR MODAL -->
+<div class="mo" id="inv-mo" onclick="if(event.target===this)closeInvModal()">
+  <div class="mb">
+    <div class="mt" id="inv-mo-title">Add investor</div>
+    <div class="fr2">
+      <div class="fg"><label>Firm</label><input type="text" id="i-name" placeholder="Banner Ridge Partners"></div>
+      <div class="fg"><label>Contact</label><input type="text" id="i-contact" placeholder="CJ Driessen"></div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Type</label>
+        <select id="i-type"><option>Family Office</option><option>Foundation</option><option>HNWI</option><option>Institution</option><option>RIA</option><option>PE Fund</option><option>Credit Fund</option><option>Other</option></select>
+      </div>
+      <div class="fg"><label>Raise</label>
+        <select id="i-raise"><option value="tbd">TBD</option><option value="industries">Hix Industries</option><option value="health">Hix Health</option><option value="both">Both raises</option><option value="financial">Hix Financial</option></select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Est. check size ($)</label><input type="number" id="i-amount" placeholder="2000000"></div>
+      <div class="fg"><label>Stage</label>
+        <select id="i-stage">
+          <option value="qualified">Qualified</option><option value="pitched">Pitched</option>
+          <option value="engaged">Engaged</option><option value="diligence">In diligence</option>
+          <option value="decision">Decision pending</option><option value="committed">Committed</option>
+          <option value="hold">On hold</option><option value="pass-known">Passed — they declined</option>
+          <option value="pass-unknown">Passed — went cold</option><option value="pass-us">Passed — our decision</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Next step — what's the single most important action to advance this investor?</label>
+      <input type="text" id="i-nextstep" placeholder="e.g. Call to get check size estimate, send data room access, schedule IC presentation...">
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>NDA</label>
+        <select id="i-nda"><option value="none">Not sent</option><option value="shared">Shared</option><option value="full">Fully executed</option></select>
+      </div>
+      <div class="fg"><label>Data room</label>
+        <select id="i-access"><option value="no">No access</option><option value="yes">Granted</option></select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Owner</label>
+        <select id="i-owner"><option>Michael</option><option>Slade</option><option>Both</option></select>
+      </div>
+      <div class="fg"><label>Days since last contact</label>
+        <select id="i-lastcontact">
+          <option value="0">Today</option><option value="1">Yesterday</option><option value="3">3 days</option>
+          <option value="7">1 week</option><option value="14">2 weeks</option><option value="21">3 weeks</option><option value="30">1 month+</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Pass/hold reason (if applicable)</label><input type="text" id="i-passreason" placeholder="Why passed or on hold..."></div>
+    <div class="fg"><label>Notes</label><textarea id="i-notes" placeholder="Last conversation, what they need, where things stand..."></textarea></div>
+    <div class="ma">
+      <button class="btn" onclick="closeInvModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveInv()">Save investor</button>
+    </div>
+  </div>
+</div>
+
+<!-- DATA REQUEST MODAL -->
+<div class="mo" id="dr-mo" onclick="if(event.target===this)closeDRModal()">
+  <div class="mb">
+    <div class="mt">Add data request</div>
+    <div class="fr2">
+      <div class="fg"><label>Investor / firm</label><input type="text" id="dr-inv" placeholder="Who asked?"></div>
+      <div class="fg"><label>Raise</label>
+        <select id="dr-raise"><option value="industries">Hix Industries</option><option value="health">Hix Health</option><option value="financial">Hix Financial</option><option value="hcg">HCG General</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>What they requested</label><textarea id="dr-req" placeholder="QoE report, 3-year P&L, PPM, legal docs..."></textarea></div>
+    <div class="fr2">
+      <div class="fg"><label>Urgency</label>
+        <select id="dr-urg"><option value="urgent">Urgent — ASAP</option><option value="week">This week</option><option value="month">This month</option><option value="whenever">No deadline</option></select>
+      </div>
+      <div class="fg"><label>Owner</label>
+        <select id="dr-owner"><option>Michael</option><option>Slade</option><option>Both</option></select>
+      </div>
+    </div>
+    <div class="ma"><button class="btn" onclick="closeDRModal()">Cancel</button><button class="btn btn-green" onclick="saveDR()">Save</button></div>
+  </div>
+</div>
+
+<!-- INVESTOR DETAIL -->
+<div class="det-o" id="det-o" onclick="if(event.target===this)closeDet()">
+  <div class="det-b" id="det-b"></div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="mo" id="proj-mo" onclick="if(event.target===this)closeProjModal()">
+  <div class="mb" style="max-width:620px">
+    <div class="mt" id="proj-mo-title">New project</div>
+    <div class="fg"><label>Project name</label><input type="text" id="p-name" placeholder="e.g. TrueWellth Asset Purchase · Hix Industries Data Room · Governor Healthcare Proposal"></div>
+    <div class="fr2">
+      <div class="fg"><label>Platform</label>
+        <select id="p-platform">
+          <option value="hcg">HCG Enterprise</option>
+          <option value="industries">Hix Industries</option>
+          <option value="health">Hix Health</option>
+          <option value="financial">Hix Financial</option>
+          <option value="hixtech">HixTech</option>
+          <option value="terra">HixTerra</option>
+          <option value="capital">Hix Capital</option>
+          <option value="personal">Personal</option>
+        </select>
+      </div>
+      <div class="fg"><label>Owner</label>
+        <select id="p-owner"><option>Michael</option><option>Slade</option><option>Both</option></select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Due date</label>
+        <input type="date" id="p-due">
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Status</label>
+        <select id="p-status">
+          <option value="active">Active</option>
+          <option value="paused">Paused</option>
+          <option value="complete">Complete</option>
+        </select>
+      </div>
+      <div class="fg"><label>Priority</label>
+        <select id="p-priority">
+          <option value="urgent">Urgent</option>
+          <option value="high">High</option>
+          <option value="med">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Outcome — what does done look like?</label>
+      <textarea id="p-outcome" placeholder="e.g. TrueWellth purchase agreement fully executed, escrow funded, HIPAA review initiated, codebase access confirmed"></textarea>
+    </div>
+    <div class="fg"><label>Notes / context</label>
+      <textarea id="p-notes" placeholder="Background, constraints, key dependencies, who's involved..."></textarea>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em">Milestones</label>
+      <div id="milestone-inputs"></div>
+      <button class="btn btn-sm" style="margin-top:8px" onclick="addMilestoneInput()">+ Add milestone</button>
+    </div>
+    <div class="ma">
+      <button class="btn" onclick="closeProjModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveProject()">Save project</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT DETAIL -->
+<div class="det-o" id="proj-det-o" onclick="if(event.target===this)closeProjDet()">
+  <div class="det-b" id="proj-det-b" style="max-width:640px"></div>
+</div>
+
+<script>
+// ─── DATE ───────────────────────────────────────────────────────────────
+const _n=new Date();const TODAY=new Date(_n.getFullYear(),_n.getMonth(),_n.getDate());
+const DATE_STR = TODAY.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+document.getElementById('top-date').textContent = DATE_STR;
+document.addEventListener('DOMContentLoaded',()=>{
+  const lbl=document.getElementById('sched-date-label');
+  if(lbl) lbl.textContent=TODAY.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+});
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────
+const PLAT_LABELS={industries:'Hix Industries',health:'Hix Health',financial:'Hix Financial',hixtech:'HixTech',capital:'Hix Capital',terra:'HixTerra',hcg:'HCG Enterprise',personal:'Personal'};
+const PLAT_TAGS={industries:'tag-ind',health:'tag-health',financial:'tag-fin',hixtech:'tag-tech',capital:'tag-hoit',terra:'tag-terra',hcg:'tag-hcg',personal:'tag-personal'};
+const PLAT_COLORS={industries:'#2b7fd4',health:'#1d9e75',financial:'#7F77DD',hixtech:'#d4860a',capital:'#c93b3b',terra:'#2d7d46',hcg:'#888',personal:'#9333ea'};
+const PRIO_ORDER={urgent:0,high:1,med:2,low:3};
+const PRIO_PILLS={urgent:'p-urgent',high:'p-high',med:'p-med',low:'p-low'};
+const PRIO_DOTS={urgent:'pdot-urgent',high:'pdot-high',med:'pdot-med',low:'pdot-low'};
+const PRIO_LABELS={urgent:'Urgent',high:'High',med:'Medium',low:'Low'};
+const STAGE_ORDER=['qualified','pitched','engaged','diligence','decision','committed','hold','pass-known','pass-unknown','pass-us'];
+const STAGE_ACTIVE=['qualified','pitched','engaged','diligence','decision','committed'];
+const STAGE_LABELS={qualified:'Qualified',pitched:'Pitched',engaged:'Engaged',diligence:'In diligence',decision:'Decision pending',committed:'Committed',hold:'On hold','pass-known':'Passed — declined','pass-unknown':'Passed — went cold','pass-us':'Passed — our decision'};
+const STAGE_PILLS={qualified:'s-qualified',pitched:'s-pitched',engaged:'s-engaged',diligence:'s-diligence',decision:'s-decision',committed:'s-committed',hold:'s-hold','pass-known':'s-pass-known','pass-unknown':'s-pass-unknown','pass-us':'s-pass-us'};
+const STAGE_COLORS={qualified:'#ccc',pitched:'#2b7fd4',engaged:'#5b4fcf',diligence:'#d4860a',decision:'#e8a020',committed:'#1d9e75'};
+const RAISE_LABELS={industries:'Hix Industries',health:'Hix Health',both:'Both raises',financial:'Hix Financial',tbd:'TBD'};
+const RAISE_TAGS={industries:'tag-ind',health:'tag-health',both:'s-engaged',financial:'tag-fin',tbd:''};
+const RAISE_ORDER={industries:0,health:1,both:2,financial:3,tbd:4};
+
+let nTaskId=100, nInvId=20, nDrId=10, taskEid=null, invEid=null;
+let invSortCol='momentum', invSortAsc=false;
+
+// ─── TASKS DATA ───────────────────────────────────────────────────────────
+const tasks = [
+  // Today — urgent
+  {id:1,text:'CTS Capital Payment — Arrange',type:'business',platform:'capital',due:'2026-05-19',urgent:true,priority:'urgent',owner:'Michael',notes:'',done:false},
+  {id:2,text:'Send THRIVE grant to Slade for review',type:'business',platform:'health',due:'2026-05-19',urgent:true,priority:'urgent',owner:'Michael',notes:'',done:false},
+  {id:3,text:'Send Brightwood info package',type:'business',platform:'industries',due:'2026-05-19',urgent:false,priority:'high',owner:'Michael',notes:'Scott Porter · Brightwood Capital',done:false},
+  {id:4,text:'Otto USA — data room access',type:'business',platform:'industries',due:'2026-05-19',urgent:false,priority:'high',owner:'Michael',notes:'Grant data room access',done:false},
+  // Hix Industries — active raise
+  {id:5,text:'Call Star Mountain Capital — identify blocker',type:'business',platform:'industries',due:'2026-05-20',urgent:false,priority:'high',owner:'Michael',notes:'John McCarty · 7 days no contact · unknown blocker',done:false},
+  {id:6,text:'Call Boathouse Capital — get IC timeline',type:'business',platform:'industries',due:'2026-05-20',urgent:false,priority:'high',owner:'Michael',notes:'Colin Raws · 7 days no contact · need to know next step',done:false},
+  {id:7,text:'Call Ocean Avenue Capital — follow up',type:'business',platform:'industries',due:'2026-05-20',urgent:false,priority:'high',owner:'Michael',notes:'Alec Zwaneveld · 7 days no contact',done:false},
+  {id:8,text:'Push Banner Ridge NDA to full execution',type:'business',platform:'industries',due:'2026-05-21',urgent:false,priority:'high',owner:'Michael',notes:'CJ Driessen · NDA shared but not executed · blocking data room',done:false},
+  {id:9,text:'Get check size estimates from all active investors',type:'business',platform:'industries',due:'2026-05-23',urgent:false,priority:'high',owner:'Michael',notes:'Cannot model the close without check sizes · ask on every call',done:false},
+  {id:10,text:'Find contact names for Align Collaborate and GEM',type:'business',platform:'industries',due:'2026-05-23',urgent:false,priority:'med',owner:'Michael',notes:'No contact name on file for either — need decision maker',done:false},
+  // Hix Health
+  {id:11,text:'Execute PrimeCare LOI',type:'business',platform:'health',due:'2026-05-22',urgent:false,priority:'high',owner:'Michael',notes:'$6M · 3-location primary care anchor · medical brand for Hix Health',done:false},
+  {id:12,text:'Launch Hix Health investor outreach',type:'business',platform:'health',due:'2026-05-23',urgent:false,priority:'high',owner:'Slade',notes:'$38.5M SPV · Slade leads · align timing with PrimeCare LOI',done:false},
+  // Hix Financial
+  {id:13,text:'Confirm TBV with financial team — First Community Bank',type:'business',platform:'financial',due:'2026-05-21',urgent:false,priority:'high',owner:'Michael',notes:'Must confirm exact TBV before finalizing $375M offer',done:false},
+  {id:14,text:'Advance First Community Bank LOI negotiation',type:'business',platform:'financial',due:'2026-05-23',urgent:false,priority:'high',owner:'Michael',notes:'$375M offer · confirm terms · execute LOI',done:false},
+  // HixTech
+  {id:15,text:'Clear IRS/IAM Trust structure for TrueWellth',type:'business',platform:'hixtech',due:'2026-05-21',urgent:false,priority:'high',owner:'Michael',notes:'Must resolve before purchase docs can be signed',done:false},
+  {id:16,text:'Execute TrueWellth asset purchase agreement',type:'business',platform:'hixtech',due:'2026-05-23',urgent:false,priority:'high',owner:'Michael',notes:'$300K · seller agreed · docs pending legal clearance',done:false},
+  // HCG
+  {id:17,text:'Produce HCG enterprise overview — all platforms',type:'business',platform:'hcg',due:'2026-05-30',urgent:false,priority:'med',owner:'Michael',notes:'Single document showing full structure, all platforms, combined pipeline',done:false},
+  {id:18,text:'Impact Foundation — send Executive Summary (Hix Health)',type:'business',platform:'health',due:'2026-05-21',urgent:false,priority:'high',owner:'Michael',notes:'New LP prospect for Hix Health Evergreen Fund · schedule intro call after sending',done:false},
+  {id:19,text:'Impact Foundation — prepare LP Agreement and Subscription Agreement',type:'business',platform:'health',due:'2026-05-23',urgent:false,priority:'high',owner:'Michael',notes:'Hix Health Evergreen Fund LP · wire details must be specific to this fund',done:false},
+];
+
+// ─── INVESTOR DATA ────────────────────────────────────────────────────────
+const investors = [
+  {id:1,name:'Banner Ridge Partners',contact:'CJ Driessen',type:'Credit Fund',raise:'industries',amount:0,stage:'diligence',nda:'shared',access:'no',owner:'Michael',lastcontact:3,blocker:'NDA not fully executed — blocking data room access',notes:'Meeting complete. NDA shared but not fully executed.',passreason:'',log:['Meeting complete','NDA shared — awaiting execution'],nextstep:'NDA not fully executed — blocking data room access'},
+  {id:2,name:'Genesis Park Capital',contact:'Simon Haidamous',type:'PE Fund',raise:'industries',amount:0,stage:'pass-us',nda:'full',access:'no',owner:'Michael',lastcontact:14,blocker:'',notes:'Not a good fit — our decision.',passreason:'Not the right fit for this raise — our decision',log:['Meeting complete','NDA executed','Removed — not a fit (our decision)'],nextstep:''},
+  {id:3,name:'Star Mountain Capital',contact:'John McCarty',type:'Credit Fund',raise:'industries',amount:0,stage:'diligence',nda:'full',access:'yes',owner:'Michael',lastcontact:7,blocker:'Unknown — need to call and find out where they are',notes:'Meeting complete. NDA fully executed. Data room access granted.',passreason:'',log:['Meeting complete','NDA executed','Data room access granted'],nextstep:'Unknown — need to call and find out where they are'},
+  {id:4,name:'Ironwood Capital',contact:'Alex Levental',type:'Credit Fund',raise:'industries',amount:0,stage:'pitched',nda:'shared',access:'no',owner:'Michael',lastcontact:5,blocker:'NDA not executed — need signature before data room',notes:'Meeting complete. NDA shared not executed.',passreason:'',log:['Meeting complete','NDA shared'],nextstep:'NDA not executed — need signature before data room'},
+  {id:5,name:'Boathouse Capital',contact:'Colin Raws',type:'PE Fund',raise:'industries',amount:0,stage:'diligence',nda:'full',access:'yes',owner:'Michael',lastcontact:7,blocker:'Unknown — need to identify questions and IC timeline',notes:'Meeting complete. NDA executed. Data room granted.',passreason:'',log:['Meeting complete','NDA executed','Data room granted'],nextstep:'Unknown — need to identify questions and IC timeline'},
+  {id:6,name:'Ocean Avenue Capital',contact:'Alec Zwaneveld',type:'PE Fund',raise:'industries',amount:0,stage:'diligence',nda:'full',access:'yes',owner:'Michael',lastcontact:7,blocker:'Unknown — need follow-up call',notes:'Meeting complete. NDA executed. Data room granted.',passreason:'',log:['Meeting complete','NDA executed','Data room granted'],nextstep:'Unknown — need follow-up call'},
+  {id:7,name:'Brightwood Capital',contact:'Scott Porter',type:'Credit Fund',raise:'industries',amount:0,stage:'engaged',nda:'full',access:'yes',owner:'Michael',lastcontact:2,blocker:'Meeting scheduled but not yet complete',notes:'NDA executed before meeting — strong signal of interest.',passreason:'',log:['NDA executed pre-meeting (strong signal)','Data room granted','Meeting scheduled'],nextstep:'Meeting scheduled but not yet complete'},
+  {id:8,name:'Align Collaborate',contact:'',type:'Other',raise:'industries',amount:0,stage:'diligence',nda:'full',access:'yes',owner:'Michael',lastcontact:7,blocker:'No contact name on file — need decision maker',notes:'Meeting complete. NDA executed. Data room granted.',passreason:'',log:['Meeting complete','NDA executed','Data room granted'],nextstep:'No contact name on file — need decision maker'},
+  {id:9,name:'GEM',contact:'',type:'Other',raise:'industries',amount:0,stage:'pitched',nda:'shared',access:'no',owner:'Michael',lastcontact:2,blocker:'Meeting not yet complete',notes:'Meeting scheduled. NDA shared.',passreason:'',log:['Meeting scheduled','NDA shared'],nextstep:'Meeting not yet complete'},
+  {id:10,name:'Greyrock',contact:'',type:'Other',raise:'industries',amount:0,stage:'diligence',nda:'full',access:'yes',owner:'Michael',lastcontact:7,blocker:'Unknown — need follow-up call',notes:'Meeting complete. NDA executed. Data room granted.',passreason:'',log:['Meeting complete','NDA executed','Data room granted'],nextstep:'Unknown — need follow-up call'},
+  {id:11,name:'Impact Foundation',contact:'',type:'Foundation',raise:'health',amount:0,stage:'qualified',nda:'none',access:'no',owner:'Michael',lastcontact:0,blocker:'',notes:'Hix Health Evergreen Fund, LP investor. Wire/bank details must be specific to Hix Health Evergreen Fund LP.',passreason:'',log:['Added — initial qualification'],nextstep:'Schedule intro call and send Executive Summary',
+    lpChecklist:{
+      lp:[
+        {text:'Executive Summary',done:false},
+        {text:'Product / Service overview',done:false},
+        {text:'Revenue model',done:false},
+        {text:'Competitors',done:false},
+        {text:'Milestones',done:false},
+        {text:'Growth strategy',done:false},
+      ],
+      docs:[
+        {text:'LP Agreement',done:false},
+        {text:'Pitch Deck',done:false},
+        {text:'List of current owners with % ownership',done:false},
+        {text:'Subscription Agreement',done:false},
+        {text:'Bank / Wire details — Hix Health Evergreen Fund LP',done:false,urgent:true},
+      ]
+    }
+  },
+];
+
+const dataRequests = [];
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+function mom(i){if(['pass-known','pass-unknown','pass-us','hold'].includes(i.stage))return'gray';if(i.lastcontact<=3)return'green';if(i.lastcontact<=10)return'yellow';return'red';}
+function momDot(i){const m=mom(i);return m==='green'?'mom-g':m==='yellow'?'mom-y':'mom-r';}
+function momLabel(i){const d=i.lastcontact;if(d===0)return'Today';if(d===1)return'Yesterday';return d+'d ago';}
+function ndaB(v){if(v==='full')return'<span class="tag-full">Fully ex.</span>';if(v==='shared')return'<span class="tag-shared">Shared</span>';return'<span class="tag-no">—</span>';}
+function accB(v){return v==='yes'?'<span class="tag-full">Granted</span>':'<span class="tag-no">—</span>';}
+function fmt$(n){if(!n)return'—';if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return'$'+n.toLocaleString();}
+
+// Format deal value — handles both numeric and string inputs
+function fmtDeal$(val){
+  if(!val||val==='') return '—';
+  // If already a formatted string like "$75M" or "$375M", normalize it
+  const str = String(val).trim();
+  // Try to parse as a number first
+  const raw = str.replace(/[$,\s]/g,'');
+  const num = parseFloat(raw);
+  if(!isNaN(num) && !raw.match(/[a-zA-Z]/)){
+    // Pure number — format with commas and dollar sign
+    if(num>=1e9) return '$'+( num/1e9).toFixed(2).replace(/\.?0+$/,'')+'B';
+    if(num>=1e6) return '$'+(num/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';
+    if(num>=1e3) return '$'+(num/1e3).toFixed(0)+'K';
+    return '$'+num.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+  // Has letters (e.g. "$75M", "$1.2B") — clean up and ensure $ prefix
+  if(!str.startsWith('$')) return '$'+str;
+  return str;
+}
+
+// ─── BRIEF METRICS ────────────────────────────────────────────────────────
+function rBriefMets(){
+  const open=tasks.filter(t=>!t.done);
+  const done=tasks.filter(t=>t.done);
+  const pct=tasks.length?Math.round((done.length/tasks.length)*100):0;
+  document.getElementById('brief-mets').innerHTML=`
+    <div class="met"><div class="met-label">Open tasks</div><div class="met-val">${open.length}</div><div class="met-sub">${done.length} completed today</div></div>
+    <div class="met"><div class="met-label">Today's progress</div><div class="met-val">${pct}%</div><div class="met-sub">${done.length} of ${tasks.length} items</div></div>`;
+  const _tp=document.getElementById('top-progress');if(_tp)_tp.textContent=`${done.length}/${tasks.length} done`;
+}
+
+// ─── EXECUTION LIST ───────────────────────────────────────────────────────
+function rExec(){
+  const filter=document.getElementById('exec-filter')?.value||'all';
+  let list=[...tasks];
+  if(filter==='urgent') list=list.filter(t=>t.priority==='urgent'&&!t.done);
+  else if(filter==='business') list=list.filter(t=>t.type==='business');
+  else if(filter==='personal') list=list.filter(t=>t.type==='personal');
+  else if(filter==='open') list=list.filter(t=>!t.done);
+
+  // Sort: open by priority first, then done at bottom
+  list.sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    return PRIO_ORDER[a.priority]-PRIO_ORDER[b.priority];
+  });
+
+  const sections={urgent:[],high:[],med:[],low:[],done:[]};
+  list.forEach(t=>{
+    if(t.done) sections.done.push(t);
+    else sections[t.priority]?.push(t);
+  });
+
+  const secLabels={urgent:'🔴 Urgent — do these first',high:'🟡 High priority — this week',med:'🔵 Medium — this month',low:'⚪ Low — on the radar',done:'✅ Completed'};
+  let html='';
+  ['urgent','high','med','low','done'].forEach(sec=>{
+    if(!sections[sec].length) return;
+    html+=`<div class="exec-section">
+      <div class="exec-section-header">
+        <div class="exec-section-title" style="color:${sec==='urgent'?'var(--red)':sec==='high'?'var(--amber)':sec==='med'?'var(--blue)':sec==='done'?'var(--green)':'var(--text-3)'}">${secLabels[sec]}</div>
+        <div class="exec-section-count">${sections[sec].length}</div>
+      </div>`;
+    sections[sec].forEach(t=>{
+      html+=`<div class="task-item" onclick="toggleTask(${t.id})">
+        <div class="task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleTask(${t.id})"></div>
+        <div class="task-content">
+          <div class="task-text ${t.done?'done':''}">${t.text}</div>
+          <div class="task-meta">
+            <span class="tag ${PLAT_TAGS[t.platform]||'tag-hcg'}">${PLAT_LABELS[t.platform]||t.platform}</span>
+            ${t.type==='personal'?'<span class="pill p-personal">Personal</span>':''}
+            <span style="font-size:11px;color:var(--text-3)">${t.owner}</span>
+          </div>
+          ${t.notes&&!t.done?`<div class="task-note">${t.notes}</div>`:''}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn btn-sm" onclick="event.stopPropagation();openTaskEdit(${t.id})">Edit</button>
+          <button class="btn-del" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  if(!html) html='<div class="empty">No items match this filter</div>';
+  document.getElementById('exec-list').innerHTML=html;
+}
+
+function toggleTask(id){
+  const t=tasks.find(x=>x.id===id);
+  if(t){t.done=!t.done;}
+  rExec();rBriefMets();rPlatTasks();rPersonal();
+}
+function deleteTask(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  if(!confirm('Delete "'+t.text.substring(0,60)+(t.text.length>60?'…':'')+'"?'))return;
+  tasks.splice(tasks.indexOf(t),1);
+  rExec();rBriefMets();rPlatTasks();rPersonal();
+}
+
+// ─── PLATFORM METRICS ────────────────────────────────────────────────────
+function rPlatMets(){
+  const open=tasks.filter(t=>!t.done&&t.type==='business');
+  const urgent=open.filter(t=>t.priority==='urgent');
+  const activeAcq=acquisitions.filter(a=>ACQ_ACTIVE.includes(a.stage)).length;
+  document.getElementById('plat-mets').innerHTML=`
+    <div class="met"><div class="met-label">Open business tasks</div><div class="met-val">${open.length}</div><div class="met-sub">Across all platforms</div></div>
+    <div class="met"><div class="met-label">Urgent</div><div class="met-val" style="color:var(--red)">${urgent.length}</div><div class="met-sub">Need action today</div></div>
+    <div class="met"><div class="met-label">Active deals</div><div class="met-val">${activeAcq}</div><div class="met-sub">In pipeline</div></div>
+    <div class="met"><div class="met-label">Active investors</div><div class="met-val">${investors.filter(i=>['qualified','pitched','engaged','diligence','decision'].includes(i.stage)).length}</div><div class="met-sub">In pipeline</div></div>`;
+}
+
+// ─── PLATFORM DATA ────────────────────────────────────────────────────────
+const platforms = [
+  {key:'capital',    name:'Hix Capital',    sub:'Capital engine',                         raiseLabel:'Service fees', committed:0, target:0,     color:'#c93b3b', status:'Active',                  acquisitions:[]},
+  {key:'industries', name:'Hix Industries', sub:'Industrials platform',                    raiseLabel:'$89.87M SPV',  committed:0, target:89.87, color:'#2b7fd4', status:'Active raise',            acquisitions:[]},
+  {key:'health',     name:'Hix Health',     sub:'Healthcare platform',                     raiseLabel:'$38.5M SPV',   committed:0, target:38.5,  color:'#1d9e75', status:'Active raise',            acquisitions:[]},
+  {key:'financial',  name:'Hix Financial',  sub:'Financial services platform',             raiseLabel:'$375M offer',  committed:0, target:375,   color:'#7F77DD', status:'LOI in negotiation',      acquisitions:[]},
+  {key:'terra',      name:'HixTerra',       sub:'Real estate platform',                    raiseLabel:'',             committed:0, target:0,     color:'#2d7d46', status:'Building',                acquisitions:[]},
+  {key:'hixtech',    name:'HixTech',        sub:'Technology platform',                     raiseLabel:'$300K acq.',   committed:0, target:0.3,   color:'#d4860a', status:'Acquisition in progress', acquisitions:[]},
+];
+
+// ─── ACQUISITION MODAL ────────────────────────────────────────────────────
+let acqPlatKey = null;
+function openAcqModal(key){
+  acqPlatKey = key;
+  const p = platforms.find(x=>x.key===key);
+  if(!p) return;
+  const mo = document.getElementById('acq-mo');
+  document.getElementById('acq-mo-title').textContent = p.name + ' — Acquisitions';
+  const list = p.acquisitions;
+  document.getElementById('acq-list').innerHTML = list.length ? list.map((a,i)=>`
+    <div style="padding:14px 0;border-bottom:0.5px solid var(--border-light)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
+        <div style="font-weight:600;font-size:14px">${a.name}</div>
+        <span class="pill p-med" style="white-space:nowrap">${a.status}</span>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap">
+        <div style="font-size:13px"><span style="color:var(--text-3)">Value</span> <strong>${a.value}</strong></div>
+        <div style="font-size:13px"><span style="color:var(--text-3)">Multiple</span> <strong>${a.multiple}</strong></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:5px;line-height:1.5">${a.notes}</div>
+    </div>`).join('') : '<div class="empty">No acquisitions logged yet</div>';
+  mo.style.display='flex';
+}
+function closeAcqModal(){document.getElementById('acq-mo').style.display='none';}
+
+// ─── PLATFORM CARDS ──────────────────────────────────────────────────────
+function rPlatformCards(){
+  document.getElementById('platform-cards').innerHTML=platforms.map(p=>{
+    const open=tasks.filter(t=>t.platform===p.key&&!t.done).length;
+    const urg=tasks.filter(t=>t.platform===p.key&&!t.done&&t.priority==='urgent').length;
+    const pct=p.target>0?Math.min(100,Math.round((p.committed/p.target)*100)):0;
+    return `<div class="platform-card">
+      <div class="pc-header" onclick="filterPlatTasks('${p.key}')" style="cursor:pointer">
+        <div><div class="pc-name">${p.name}</div><div class="pc-sub">${p.sub}</div></div>
+        ${urg>0?`<span class="pill p-urgent">${urg} urgent</span>`:''}
+      </div>
+      <div class="pc-amount" onclick="filterPlatTasks('${p.key}')" style="cursor:pointer">${p.raiseLabel}</div>
+      ${p.target>0?`<div class="pc-bar"><div class="pc-fill" style="width:${pct}%;background:${p.color}"></div></div>`:''}
+      <div class="pc-stats" style="margin-top:8px">
+        <div class="pc-stat"><span>${p.status}</span></div>
+        <div class="pc-stat">${open} open task${open!==1?'s':''}</div>
+        ${p.acquisitions.length?`<div class="pc-stat">${p.acquisitions.length} acquisition${p.acquisitions.length!==1?'s':''}</div>`:''}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px">
+        <button class="btn btn-sm" onclick="filterPlatTasks('${p.key}')">View tasks</button>
+        ${p.acquisitions.length?`<button class="btn btn-sm" onclick="openAcqModal('${p.key}')">Acquisitions (${p.acquisitions.length})</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterPlatTasks(key){
+  document.getElementById('plat-filter').value=key;
+  sv('platforms',document.querySelectorAll('.tab')[1]);
+  rPlatTasks();
+}
+
+// ─── PLATFORM TASK LIST ───────────────────────────────────────────────────
+function rPlatTasks(){
+  const pf=document.getElementById('plat-filter')?.value||'all';
+  const prf=document.getElementById('plat-priority-filter')?.value||'all';
+  let list=tasks.filter(t=>t.type==='business');
+  if(pf!=='all') list=list.filter(t=>t.platform===pf);
+  if(prf!=='all') list=list.filter(t=>t.priority===prf);
+  list.sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return PRIO_ORDER[a.priority]-PRIO_ORDER[b.priority];});
+  if(!list.length){document.getElementById('plat-task-list').innerHTML='<div class="empty">No tasks match this filter</div>';return;}
+  document.getElementById('plat-task-list').innerHTML=list.map(t=>`
+    <div class="task-item" onclick="toggleTask(${t.id})">
+      <div class="task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleTask(${t.id})"></div>
+      <div class="task-content">
+        <div class="task-text ${t.done?'done':''}">${t.text}</div>
+        <div class="task-meta">
+          <span class="tag ${PLAT_TAGS[t.platform]||'tag-hcg'}">${PLAT_LABELS[t.platform]}</span>
+          <span class="pill ${PRIO_PILLS[t.priority]}">${PRIO_LABELS[t.priority]}</span>
+          <span style="font-size:11px;color:var(--text-3)">${t.owner}</span>
+        </div>
+        ${t.notes&&!t.done?`<div class="task-note">${t.notes}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="btn btn-sm" onclick="event.stopPropagation();openTaskEdit(${t.id})">Edit</button>
+        <button class="btn-del" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── INVESTOR METRICS ────────────────────────────────────────────────────
+function rInvMets(){
+  const active=investors.filter(i=>STAGE_ACTIVE.includes(i.stage));
+  const committed=investors.filter(i=>i.stage==='committed');
+  const dil=investors.filter(i=>i.stage==='diligence');
+  const stale=active.filter(i=>i.lastcontact>10);
+  const noAmt=active.filter(i=>!i.amount);
+  document.getElementById('inv-mets').innerHTML=`
+    <div class="met"><div class="met-label">Active investors</div><div class="met-val">${active.length}</div><div class="met-sub">Hix Industries raise</div></div>
+    <div class="met"><div class="met-label">In diligence</div><div class="met-val">${dil.length}</div><div class="met-sub">Data room active</div></div>
+    <div class="met"><div class="met-label">Hard committed</div><div class="met-val" style="color:${committed.length?'var(--green)':'var(--red)'}">${committed.length}</div><div class="met-sub">${committed.length?fmt$(committed.reduce((s,i)=>s+i.amount,0)):'$0 locked'}</div></div>
+    <div class="met"><div class="met-label">Gone stale</div><div class="met-val" style="color:${stale.length?'var(--amber)':'var(--green)'}">${stale.length}</div><div class="met-sub">10+ days no contact</div></div>
+    <div class="met"><div class="met-label">No check size</div><div class="met-val" style="color:${noAmt.length?'var(--amber)':'var(--green)'}">${noAmt.length}</div><div class="met-sub">Can't model close</div></div>`;
+}
+
+// ─── INVESTOR INSIGHT ─────────────────────────────────────────────────────
+function rInvInsight(){
+  const active=investors.filter(i=>STAGE_ACTIVE.includes(i.stage));
+  const unknownB=active.filter(i=>!i.nextstep);
+  const noAmt=active.filter(i=>!i.amount);
+  const stale=active.filter(i=>i.lastcontact>10);
+  const items=[];
+  if(unknownB.length) items.push(`<strong>${unknownB.length} investor${unknownB.length>1?'s':''}</strong> have no next step set — add one for each.`);
+  if(noAmt.length) items.push(`<strong>${noAmt.length} investor${noAmt.length>1?'s':''}</strong> have no check size estimate — you can't model your close without this.`);
+  if(stale.length) items.push(`<strong>${stale.length} investor${stale.length>1?'s':''}</strong> have gone stale (10+ days). Reach out today.`);
+  const el=document.getElementById('inv-insight');
+  el.innerHTML=items.length?`<div class="insight">⚡ <strong>Raise health check:</strong> ${items.join(' ')}</div>`:'';
+}
+
+// ─── FUNNEL ───────────────────────────────────────────────────────────────
+function rFunnel(){
+  const stages=['qualified','pitched','engaged','diligence','decision','committed'];
+  const max=Math.max(...stages.map(s=>investors.filter(i=>i.stage===s).length),1);
+  document.getElementById('funnel').innerHTML=stages.map(s=>{
+    const list=investors.filter(i=>i.stage===s);
+    const pct=Math.round((list.length/max)*100);
+    return `<div class="f-stage" onclick="filterInvStage('${s}')">
+      <div class="f-label">${STAGE_LABELS[s]}</div>
+      <div class="f-count">${list.length}</div>
+      <div class="f-amt">${list.filter(i=>i.amount>0).length?fmt$(list.reduce((a,i)=>a+i.amount,0)):''}</div>
+      <div class="f-bar"><div class="f-fill" style="width:${pct}%;background:${STAGE_COLORS[s]||'#ccc'}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function filterInvStage(s){
+  document.getElementById('inv-stage-filter').value=s;
+  rInvTable();
+}
+
+// ─── INVESTOR TABLE ───────────────────────────────────────────────────────
+function rInvTable(){
+  const rf=document.getElementById('inv-raise-filter')?.value||'all';
+  const sf=document.getElementById('inv-stage-filter')?.value||'active';
+  let list=investors.filter(i=>{
+    const rm=rf==='all'||i.raise===rf;
+    const sm=sf==='active'?STAGE_ACTIVE.includes(i.stage):(sf==='all'||i.stage===sf);
+    return rm&&sm&&!['pass-known','pass-unknown','pass-us'].includes(i.stage);
+  });
+  list.sort((a,b)=>{
+    let av,bv;
+    if(invSortCol==='name'){av=a.name.toLowerCase();bv=b.name.toLowerCase();}
+    else if(invSortCol==='raise'){av=RAISE_ORDER[a.raise]??9;bv=RAISE_ORDER[b.raise]??9;}
+    else if(invSortCol==='stage'){av=STAGE_ORDER.indexOf(a.stage);bv=STAGE_ORDER.indexOf(b.stage);}
+    else if(invSortCol==='amount'){av=a.amount;bv=b.amount;}
+    else{const mo={green:0,yellow:1,red:2,gray:3};av=mo[mom(a)];bv=mo[mom(b)];}
+    return invSortAsc?(av<bv?-1:av>bv?1:0):(av<bv?1:av>bv?-1:0);
+  });
+  const tbody=document.getElementById('inv-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="9" class="empty">No investors match</td></tr>';return;}
+  tbody.innerHTML=list.map(i=>`<tr onclick="openInvDet(${i.id})">
+    <td><div class="inv-name">${i.name}</div>${i.contact?`<div class="inv-contact">${i.contact}</div>`:''}</td>
+    <td><span class="tag ${RAISE_TAGS[i.raise]||''}">${RAISE_LABELS[i.raise]||i.raise}</span></td>
+    <td style="font-size:13px">${i.amount?fmt$(i.amount):'<span style="color:var(--text-4)">Not set</span>'}</td>
+    <td><span class="pill ${STAGE_PILLS[i.stage]}">${STAGE_LABELS[i.stage]}</span></td>
+    <td>${i.blocker?`<span class="blocker" title="${i.blocker}">${i.blocker}</span>`:'<span style="color:var(--text-4);font-size:11px">—</span>'}</td>
+    <td>${ndaB(i.nda)}</td>
+    <td>${accB(i.access)}</td>
+    <td><span class="mom ${momDot(i)}" style="margin-right:5px"></span><span style="font-size:12px;color:var(--text-3)">${momLabel(i)}</span></td>
+    <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openInvEdit(${i.id})">Edit</button></td>
+  </tr>`).join('');
+
+  // Passed table
+  const passed=investors.filter(i=>['pass-known','pass-unknown','pass-us','hold'].includes(i.stage));
+  document.getElementById('passed-tbody').innerHTML=passed.map(i=>`<tr onclick="openInvDet(${i.id})">
+    <td><div class="inv-name">${i.name}</div>${i.contact?`<div class="inv-contact">${i.contact}</div>`:''}</td>
+    <td><span class="pill ${STAGE_PILLS[i.stage]}">${STAGE_LABELS[i.stage]}</span></td>
+    <td>${ndaB(i.nda)}</td>
+    <td style="font-size:12px;color:var(--text-2);max-width:220px">${i.passreason||i.notes||'—'}</td>
+    <td style="font-size:12px">${i.stage==='pass-unknown'?'<span style="color:var(--amber);font-weight:600">Try once</span>':i.stage==='hold'?'<span style="color:var(--blue);font-weight:600">Yes — timing</span>':'<span style="color:var(--text-4)">No</span>'}</td>
+  </tr>`).join('');
+}
+
+function sortInv(col,th){
+  if(invSortCol===col){invSortAsc=!invSortAsc;}else{invSortCol=col;invSortAsc=true;}
+  document.querySelectorAll('.inv-table th').forEach(t=>{t.classList.remove('asc','desc');});
+  if(th)th.classList.add(invSortAsc?'asc':'desc');
+  rInvTable();
+}
+
+// ─── PERSONAL LIST ────────────────────────────────────────────────────────
+function rPersonal(){
+  const list=tasks.filter(t=>t.type==='personal').sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return PRIO_ORDER[a.priority]-PRIO_ORDER[b.priority];});
+  if(!list.length){document.getElementById('personal-list').innerHTML='<div class="empty">No personal items — add one above</div>';return;}
+  document.getElementById('personal-list').innerHTML=list.map(t=>`
+    <div class="task-item" onclick="toggleTask(${t.id})">
+      <div class="task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleTask(${t.id})"></div>
+      <div class="task-content">
+        <div class="task-text ${t.done?'done':''}">${t.text}</div>
+        <div class="task-meta">
+          <span class="pill ${PRIO_PILLS[t.priority]}">${PRIO_LABELS[t.priority]}</span>
+          <span style="font-size:11px;color:var(--text-3)">${t.owner}</span>
+        </div>
+        ${t.notes&&!t.done?`<div class="task-note">${t.notes}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="btn btn-sm" onclick="event.stopPropagation();openTaskEdit(${t.id})">Edit</button>
+        <button class="btn-del" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── DATA REQUESTS ────────────────────────────────────────────────────────
+function rDR(){
+  const urgO={urgent:0,week:1,month:2,whenever:3};
+  const urgL={urgent:'Urgent',week:'This week',month:'This month',whenever:'No deadline'};
+  const renderItems=(list)=>{
+    if(!list.length) return '<div class="empty">None</div>';
+    return list.sort((a,b)=>urgO[a.urg]-urgO[b.urg]).map(r=>`
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border-light)">
+        <div style="flex:1">
+          <div style="font-weight:600">${r.investor} <span style="font-size:11px;font-weight:400;color:var(--text-3)">· ${r.owner}</span></div>
+          <div style="font-size:13px;color:var(--text-2);margin-top:3px;line-height:1.4">${r.req}</div>
+          <div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="tag ${RAISE_TAGS[r.raise]||''}">${RAISE_LABELS[r.raise]||r.raise}</span>
+            <span class="pill ${urgO[r.urg]===0?'p-urgent':urgO[r.urg]===1?'p-high':'p-med'}">${urgL[r.urg]}</span>
+          </div>
+        </div>
+        ${!r.done?`<button class="btn btn-sm" onclick="fulfillDR(${r.id})">Mark sent</button>`:'<span style="font-size:11px;color:var(--green);font-weight:600">✓ Sent</span>'}
+      </div>`).join('');
+  };
+  const open=dataRequests.filter(d=>!d.done);
+  const done=dataRequests.filter(d=>d.done);
+  document.getElementById('dr-open').innerHTML=
+    (open.length?renderItems(open):'<div class="empty">No outstanding requests</div>') +
+    (done.length?`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-3);margin:1.25rem 0 6px">Fulfilled</div>${renderItems(done)}`:'');
+  document.getElementById('dr-done').innerHTML='';
+}
+function fulfillDR(id){const r=dataRequests.find(d=>d.id===id);if(r)r.done=true;rDR();}
+
+// ─── TASK MODAL ───────────────────────────────────────────────────────────
+function openTaskModal(type){
+  taskEid=null;
+  document.getElementById('task-mo-title').textContent='Add item';
+  ['t-text','t-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('t-due').value='';
+  document.getElementById('t-urgent').value='no';
+  document.getElementById('t-type').value=type||'business';
+  document.getElementById('t-platform').value=type==='personal'?'personal':'hcg';
+  document.getElementById('t-owner').value='Michael';
+  document.getElementById('task-mo').style.display='flex';
+}
+function openTaskEdit(id){
+  taskEid=id;
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  document.getElementById('task-mo-title').textContent='Edit item';
+  document.getElementById('t-text').value=t.text;
+  document.getElementById('t-type').value=t.type;
+  document.getElementById('t-platform').value=t.platform;
+  document.getElementById('t-due').value=t.due||'';
+  document.getElementById('t-urgent').value=t.urgent?'yes':'no';
+  document.getElementById('t-owner').value=t.owner;
+  document.getElementById('t-notes').value=t.notes||'';
+  document.getElementById('task-mo').style.display='flex';
+}
+function closeTaskModal(){document.getElementById('task-mo').style.display='none';taskEid=null;}
+function saveTask(){
+  const text=document.getElementById('t-text').value.trim();if(!text)return;
+  const due=document.getElementById('t-due').value;
+  const urgent=document.getElementById('t-urgent').value==='yes';
+  // Keep a priority field for backward compat but derive from due/urgent
+  const priority=urgent?'urgent':due?'high':'low';
+  const data={text,type:document.getElementById('t-type').value,platform:document.getElementById('t-platform').value,due,urgent,priority,owner:document.getElementById('t-owner').value,notes:document.getElementById('t-notes').value.trim(),done:false};
+  if(taskEid){const t=tasks.find(x=>x.id===taskEid);if(t)Object.assign(t,{...data,done:t.done});}
+  else{tasks.push({id:nTaskId++,...data});}
+  closeTaskModal();renderAll();
+}
+
+// ─── INVESTOR MODAL ───────────────────────────────────────────────────────
+function openInvModal(){
+  invEid=null;
+  document.getElementById('inv-mo-title').textContent='Add investor';
+  ['i-name','i-contact','i-amount','i-nextstep','i-notes','i-passreason'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('i-stage').value='qualified';
+  document.getElementById('i-raise').value='industries';
+  document.getElementById('i-nda').value='none';
+  document.getElementById('i-access').value='no';
+  document.getElementById('i-owner').value='Michael';
+  document.getElementById('i-lastcontact').value='0';
+  document.getElementById('inv-mo').style.display='flex';
+}
+function openInvEdit(id){
+  invEid=id;const i=investors.find(x=>x.id===id);if(!i)return;
+  document.getElementById('inv-mo-title').textContent='Edit — '+i.name;
+  document.getElementById('i-name').value=i.name;
+  document.getElementById('i-contact').value=i.contact||'';
+  document.getElementById('i-type').value=i.type;
+  document.getElementById('i-raise').value=i.raise;
+  document.getElementById('i-amount').value=i.amount||'';
+  document.getElementById('i-stage').value=i.stage;
+  document.getElementById('i-nextstep').value=i.nextstep||'';
+  document.getElementById('i-nda').value=i.nda||'none';
+  document.getElementById('i-access').value=i.access||'no';
+  document.getElementById('i-owner').value=i.owner;
+  document.getElementById('i-lastcontact').value=i.lastcontact||0;
+  document.getElementById('i-passreason').value=i.passreason||'';
+  document.getElementById('i-notes').value=i.notes||'';
+  document.getElementById('inv-mo').style.display='flex';
+}
+function closeInvModal(){document.getElementById('inv-mo').style.display='none';invEid=null;}
+function saveInv(){
+  const name=document.getElementById('i-name').value.trim();if(!name)return;
+  const data={name,contact:document.getElementById('i-contact').value.trim(),type:document.getElementById('i-type').value,raise:document.getElementById('i-raise').value,amount:parseFloat(document.getElementById('i-amount').value)||0,stage:document.getElementById('i-stage').value,nextstep:document.getElementById('i-nextstep').value.trim(),nda:document.getElementById('i-nda').value,access:document.getElementById('i-access').value,owner:document.getElementById('i-owner').value,lastcontact:parseInt(document.getElementById('i-lastcontact').value)||0,passreason:document.getElementById('i-passreason').value.trim(),notes:document.getElementById('i-notes').value.trim()};
+  if(invEid){const i=investors.find(x=>x.id===invEid);if(i){Object.assign(i,data);i.log.push(`Updated — ${STAGE_LABELS[i.stage]}`);}}
+  else{investors.push({id:nInvId++,...data,log:['Added']});}
+  closeInvModal();renderAll();
+}
+
+// ─── INVESTOR DETAIL ──────────────────────────────────────────────────────
+function openInvDet(id){
+  const i=investors.find(x=>x.id===id);if(!i)return;
+  const mc={green:'var(--green)',yellow:'var(--amber)',red:'var(--red)',gray:'var(--text-3)'};
+  document.getElementById('det-b').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem">
+      <div><div style="font-size:17px;font-weight:700">${i.name}</div>${i.contact?`<div style="font-size:13px;color:var(--text-3);margin-top:2px">${i.contact}</div>`:''}<div style="margin-top:8px"><span class="pill ${STAGE_PILLS[i.stage]}">${STAGE_LABELS[i.stage]}</span></div></div>
+      <button class="btn" onclick="closeDet()">Close</button>
+    </div>
+    <div class="drow"><div class="dl">Raise</div><div class="dv">${RAISE_LABELS[i.raise]}</div></div>
+    <div class="drow"><div class="dl">Type</div><div class="dv">${i.type}</div></div>
+    <div class="drow"><div class="dl">Est. check size</div><div class="dv">${i.amount?fmt$(i.amount):'<span style="color:var(--text-4)">Not set — get this</span>'}</div></div>
+    <div class="drow"><div class="dl">Next step</div><div class="dv" style="color:${i.nextstep?'var(--blue)':'var(--text-4)'}">${i.nextstep||'Not set'}</div></div>
+    <div class="drow"><div class="dl">NDA</div><div class="dv">${i.nda==='full'?'Fully executed':i.nda==='shared'?'Shared — awaiting execution':'Not sent'}</div></div>
+    <div class="drow"><div class="dl">Data room</div><div class="dv">${i.access==='yes'?'Access granted':'No access'}</div></div>
+    <div class="drow"><div class="dl">Owner</div><div class="dv">${i.owner}</div></div>
+    <div class="drow"><div class="dl">Last contact</div><div class="dv" style="color:${mc[mom(i)]}">${momLabel(i)}</div></div>
+    ${i.passreason?`<div class="drow"><div class="dl">Pass reason</div><div class="dv" style="font-weight:400">${i.passreason}</div></div>`:''}
+    <div class="drow"><div class="dl">Notes</div><div class="dv" style="font-weight:400;text-align:right;max-width:65%">${i.notes||'—'}</div></div>
+    ${i.lpChecklist ? `
+    <div class="sl">LP information checklist</div>
+    <div style="margin-bottom:1rem">${i.lpChecklist.lp.map((item,idx)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid var(--border-light)">
+        <div class="task-check ${item.done?'checked':''}" onclick="toggleLPItem(${i.id},'lp',${idx})" style="cursor:pointer;flex-shrink:0"></div>
+        <div style="font-size:13px;${item.done?'text-decoration:line-through;color:var(--text-4)':''}">${item.text}</div>
+      </div>`).join('')}
+    </div>
+    <div class="sl">Documents checklist</div>
+    <div style="margin-bottom:1rem">${i.lpChecklist.docs.map((item,idx)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid var(--border-light)">
+        <div class="task-check ${item.done?'checked':''}" onclick="toggleLPItem(${i.id},'docs',${idx})" style="cursor:pointer;flex-shrink:0"></div>
+        <div style="font-size:13px;flex:1;${item.done?'text-decoration:line-through;color:var(--text-4)':''}">
+          ${item.text}${item.urgent?` <span style="font-size:10px;font-weight:700;color:#fff;background:var(--red);padding:1px 7px;border-radius:10px;margin-left:6px">IMPORTANT</span>`:''}
+        </div>
+      </div>`).join('')}
+    </div>` : ''}
+    <div class="sl">Log</div>
+    <div style="margin-bottom:1rem">${(i.log||[]).map(e=>`<div class="log-e">${e}</div>`).join('')||'<div style="color:var(--text-3);font-size:13px">No entries</div>'}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-dark" onclick="closeDet();openInvEdit(${i.id})">Edit</button>
+      <button class="btn" onclick="advanceInv(${i.id})">Advance stage →</button>
+    </div>`;
+  document.getElementById('det-o').style.display='flex';
+}
+function closeDet(){document.getElementById('det-o').style.display='none';}
+function toggleLPItem(invId, section, idx){
+  const i=investors.find(x=>x.id===invId);
+  if(!i||!i.lpChecklist) return;
+  i.lpChecklist[section][idx].done = !i.lpChecklist[section][idx].done;
+  openInvDet(invId);
+}
+function advanceInv(id){
+  const i=investors.find(x=>x.id===id);if(!i)return;
+  const active=STAGE_ORDER.filter(s=>STAGE_ACTIVE.includes(s));
+  const cur=active.indexOf(i.stage);
+  if(cur>=0&&cur<active.length-1){i.stage=active[cur+1];i.log.push(`Stage → ${STAGE_LABELS[i.stage]}`);}
+  closeDet();renderAll();
+}
+
+// ─── DATA REQUEST MODAL ───────────────────────────────────────────────────
+function openDRModal(){document.getElementById('dr-mo').style.display='flex';}
+function closeDRModal(){document.getElementById('dr-mo').style.display='none';}
+function saveDR(){
+  const investor=document.getElementById('dr-inv').value.trim();
+  const req=document.getElementById('dr-req').value.trim();
+  if(!investor||!req)return;
+  dataRequests.push({id:nDrId++,investor,req,raise:document.getElementById('dr-raise').value,urg:document.getElementById('dr-urg').value,owner:document.getElementById('dr-owner').value,done:false});
+  closeDRModal();rDR();
+}
+
+// ─── TAB NAVIGATION ───────────────────────────────────────────────────────
+function sv(id,el){
+  document.querySelectorAll('.vs').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  if(el&&el.classList)el.classList.add('active');
+  renderAll();
+}
+
+// ─── PLATFORM SUB-TABS ────────────────────────────────────────────────────
+function switchPlatTab(id, el){
+  document.querySelectorAll('.pst-view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.pst').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pv-'+id).classList.add('active');
+  if(el&&el.classList) el.classList.add('active');
+  else {
+    const tabs = document.querySelectorAll('.pst');
+    const map = {tasks:0,issues:1,scorecard:2};
+    if(map[id]!==undefined) tabs[map[id]].classList.add('active');
+  }
+  renderAll();
+}
+
+// ─── ISSUES DATA ──────────────────────────────────────────────────────────
+let nIssueId = 30, issueEid = null;
+const issues = [
+];
+
+// ─── ACQUISITION TRACKER DATA ─────────────────────────────────────────────
+let nAcqId = 20, acqEid = null, acqSortCol = 'platform', acqSortAsc = true;
+const ACQ_STAGES = ['sourcing','loi','diligence','negotiating','closed','operating','planning','dead'];
+const ACQ_ACTIVE = ['sourcing','loi','diligence','negotiating','planning'];
+const ACQ_STAGE_LABELS = {sourcing:'Sourcing',loi:'LOI',diligence:'Diligence',negotiating:'Negotiating',closed:'Closed',operating:'Operating',planning:'Planning',dead:'Dead'};
+const ACQ_STAGE_PILLS = {sourcing:'a-sourcing',loi:'a-loi',diligence:'a-diligence',negotiating:'a-negotiating',closed:'a-closed',operating:'a-operating',planning:'a-planning',dead:'a-dead'};
+
+const acquisitions = [
+  {id:1,name:'Edge Plastics',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:2,name:'MCD Prime',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:3,name:'Otto USA',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:4,name:'PrimeCare',platform:'health',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:5,name:'TrueWellth',platform:'hixtech',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:6,name:'First Community Bank',platform:'financial',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+];
+
+
+// ─── ISSUES FUNCTIONS ──────────────────────────────────────────────────────
+function rIssues(){
+  const pf=document.getElementById('issue-plat-filter')?.value||'all';
+  const sf=document.getElementById('issue-status-filter')?.value||'open';
+  let list=[...issues];
+  if(pf!=='all') list=list.filter(i=>i.platform===pf);
+  if(sf==='open') list=list.filter(i=>i.status==='open');
+  else if(sf!=='all') list=list.filter(i=>i.status===sf);
+  const prioO={urgent:0,high:1,med:2,low:3};
+  list.sort((a,b)=>prioO[a.priority]-prioO[b.priority]);
+  const el=document.getElementById('issues-list');
+  if(!list.length){el.innerHTML='<div class="empty">No issues match</div>';return;}
+  el.innerHTML=list.map(iss=>{
+    const dotClass=iss.status==='open'?'issue-open':iss.status==='ids'?'issue-ids':'issue-solved';
+    const statusLabel=iss.status==='open'?'Open':iss.status==='ids'?'In IDS':'Solved';
+    return `<div class="issue-item">
+      <div class="issue-dot ${dotClass}" style="margin-top:6px"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.4">${iss.text}</div>
+        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center">
+          <span class="tag ${PLAT_TAGS[iss.platform]||'tag-hcg'}">${PLAT_LABELS[iss.platform]}</span>
+          <span class="pill ${PRIO_PILLS[iss.priority]}">${PRIO_LABELS[iss.priority]}</span>
+          <span style="font-size:11px;color:var(--text-3)">${iss.owner} · ${statusLabel}</span>
+        </div>
+        ${iss.solution?`<div style="font-size:11px;color:var(--text-3);margin-top:4px;line-height:1.4">→ ${iss.solution}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="btn btn-sm" onclick="openIssueEdit(${iss.id})">Edit</button>
+        ${iss.status!=='solved'?`<button class="btn btn-sm" onclick="solveIssue(${iss.id})">✓ Solved</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function rBriefIssues(){
+  const open=issues.filter(i=>i.status!=='solved');
+  const el=document.getElementById('brief-issues');
+  if(!open.length){el.innerHTML='<div class="empty" style="color:var(--green);font-weight:600">✓ No open issues</div>';return;}
+  const prioO={urgent:0,high:1,med:2,low:3};
+  open.sort((a,b)=>prioO[a.priority]-prioO[b.priority]);
+  el.innerHTML=open.slice(0,5).map(iss=>{
+    const dotClass=iss.status==='open'?'issue-open':'issue-ids';
+    return `<div class="issue-item">
+      <div class="issue-dot ${dotClass}" style="margin-top:6px"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${iss.text}</div>
+        <div style="display:flex;gap:6px;margin-top:3px">
+          <span class="tag ${PLAT_TAGS[iss.platform]||'tag-hcg'}">${PLAT_LABELS[iss.platform]}</span>
+          <span class="pill ${PRIO_PILLS[iss.priority]}">${PRIO_LABELS[iss.priority]}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('')+(open.length>5?`<div style="font-size:12px;color:var(--text-3);padding:8px 0">${open.length-5} more issues — go to Platforms → Issues</div>`:'');
+}
+
+function openIssueModal(){
+  issueEid=null;
+  document.getElementById('issue-mo-title').textContent='Add Issue';
+  ['iss-text','iss-solution'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('iss-priority').value='high';
+  document.getElementById('iss-status').value='open';
+  document.getElementById('iss-owner').value='Michael';
+  document.getElementById('issue-mo').style.display='flex';
+}
+function openIssueEdit(id){
+  issueEid=id; const iss=issues.find(x=>x.id===id); if(!iss)return;
+  document.getElementById('issue-mo-title').textContent='Edit Issue';
+  document.getElementById('iss-text').value=iss.text;
+  document.getElementById('iss-platform').value=iss.platform;
+  document.getElementById('iss-priority').value=iss.priority;
+  document.getElementById('iss-status').value=iss.status;
+  document.getElementById('iss-owner').value=iss.owner;
+  document.getElementById('iss-solution').value=iss.solution||'';
+  document.getElementById('issue-mo').style.display='flex';
+}
+function closeIssueModal(){document.getElementById('issue-mo').style.display='none';issueEid=null;}
+function saveIssue(){
+  const text=document.getElementById('iss-text').value.trim();if(!text)return;
+  const data={text,platform:document.getElementById('iss-platform').value,priority:document.getElementById('iss-priority').value,status:document.getElementById('iss-status').value,owner:document.getElementById('iss-owner').value,solution:document.getElementById('iss-solution').value.trim()};
+  if(issueEid){const iss=issues.find(x=>x.id===issueEid);if(iss)Object.assign(iss,data);}
+  else issues.push({id:nIssueId++,...data});
+  closeIssueModal();renderAll();
+}
+function solveIssue(id){const iss=issues.find(x=>x.id===id);if(iss)iss.status='solved';renderAll();}
+
+// ─── ACQUISITION TRACKER FUNCTIONS ────────────────────────────────────────
+function rAcqMets(){
+  const active=acquisitions.filter(a=>ACQ_ACTIVE.includes(a.stage));
+  const loi=acquisitions.filter(a=>a.stage==='loi');
+  const dd=acquisitions.filter(a=>a.stage==='diligence');
+  const totalV=active.filter(a=>a.valueSortable>0).reduce((s,a)=>s+a.valueSortable,0);
+  document.getElementById('acq-mets').innerHTML=`
+    <div class="met"><div class="met-label">Active deals</div><div class="met-val">${active.length}</div><div class="met-sub">Across all platforms</div></div>
+    <div class="met"><div class="met-label">LOI stage</div><div class="met-val">${loi.length}</div><div class="met-sub">Awaiting execution</div></div>
+    <div class="met"><div class="met-label">In diligence</div><div class="met-val">${dd.length}</div><div class="met-sub">QoE / legal active</div></div>
+    <div class="met"><div class="met-label">Pipeline value</div><div class="met-val" style="font-size:20px">${totalV>=1e9?'$'+(totalV/1e9).toFixed(1)+'B':totalV>=1e6?'$'+(totalV/1e6).toFixed(1)+'M':totalV>0?'$'+totalV.toLocaleString('en-US'):'$0'}</div><div class="met-sub">Active deals only</div></div>`;
+}
+
+function rAcqTable(){
+  const pf = acqPlatFilter || 'all';
+  const sf=document.getElementById('acq-stage-filter')?.value||'active';
+  let list=acquisitions.filter(a=>{
+    const pm=pf==='all'||a.platform===pf;
+    const sm=sf==='active'?ACQ_ACTIVE.includes(a.stage):(sf==='all'||a.stage===sf);
+    return pm&&sm&&!['closed','operating'].includes(a.stage);
+  });
+  list.sort((a,b)=>{
+    if(acqSortCol==='name') return acqSortAsc?a.name.localeCompare(b.name):b.name.localeCompare(a.name);
+    if(acqSortCol==='platform') return acqSortAsc?a.platform.localeCompare(b.platform):b.platform.localeCompare(a.platform);
+    if(acqSortCol==='value') return acqSortAsc?a.valueSortable-b.valueSortable:b.valueSortable-a.valueSortable;
+    if(acqSortCol==='stage') return acqSortAsc?ACQ_STAGES.indexOf(a.stage)-ACQ_STAGES.indexOf(b.stage):ACQ_STAGES.indexOf(b.stage)-ACQ_STAGES.indexOf(a.stage);
+    if(acqSortCol==='owner') return acqSortAsc?a.owner.localeCompare(b.owner):b.owner.localeCompare(a.owner);
+    return 0;
+  });
+  const tbody=document.getElementById('acq-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No deals match</td></tr>';return;}
+  tbody.innerHTML=list.map(a=>`<tr onclick="openAcqDet(${a.id})" style="cursor:pointer">
+    <td><div class="inv-name">${a.name}</div></td>
+    <td><span class="tag ${PLAT_TAGS[a.platform]||'tag-hcg'}">${PLAT_LABELS[a.platform]}</span></td>
+    <td style="font-size:13px;font-weight:600">${fmtDeal$(a.value)}</td>
+    <td><span class="pill ${ACQ_STAGE_PILLS[a.stage]}">${ACQ_STAGE_LABELS[a.stage]}</span></td>
+    <td style="max-width:180px">
+      ${a.blocker?`<span class="blocker" title="${a.blocker}">${a.blocker}</span>`:''}
+      ${a.nextstep?`<div style="font-size:11px;color:var(--text-3);margin-top:2px">→ ${a.nextstep.substring(0,50)}${a.nextstep.length>50?'…':''}</div>`:''}
+    </td>
+    <td style="font-size:12px">${a.owner}</td>
+    <td style="font-size:12px;color:var(--text-3)">${a.log&&a.log.length?a.log[a.log.length-1]:'—'}</td>
+    <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openAcqEditModal(${a.id})">Edit</button></td>
+  </tr>`).join('');
+
+  // Closed/operating table
+  const closed=acquisitions.filter(a=>['closed','operating'].includes(a.stage));
+  document.getElementById('acq-closed-tbody').innerHTML=closed.length?closed.map(a=>`<tr>
+    <td><div class="inv-name">${a.name}</div></td>
+    <td><span class="tag ${PLAT_TAGS[a.platform]||'tag-hcg'}">${PLAT_LABELS[a.platform]}</span></td>
+    <td style="font-weight:600">${fmtDeal$(a.value)}</td>
+    <td style="font-size:12px">${a.multiple}</td>
+    <td><span class="pill ${ACQ_STAGE_PILLS[a.stage]}">${ACQ_STAGE_LABELS[a.stage]}</span></td>
+  </tr>`).join(''):'<tr><td colspan="5" class="empty">No closed deals yet</td></tr>';
+}
+
+function sortAcq(col,th){
+  if(acqSortCol===col)acqSortAsc=!acqSortAsc;else{acqSortCol=col;acqSortAsc=true;}
+  document.querySelectorAll('#pv-acquisitions .inv-table th').forEach(t=>{t.classList.remove('asc','desc');});
+  if(th)th.classList.add(acqSortAsc?'asc':'desc');
+  rAcqTable();
+}
+
+function openAcqEditModal(id){
+  acqEid=id||null;
+  const a=id?acquisitions.find(x=>x.id===id):null;
+  document.getElementById('acq-edit-title').textContent=a?'Edit deal':'Add deal';
+  document.getElementById('ae-name').value=a?a.name:'';
+  document.getElementById('ae-platform').value=a?a.platform:'industries';
+  document.getElementById('ae-value').value=a?a.value:'';
+  document.getElementById('ae-multiple').value=a?a.multiple:'';
+  document.getElementById('ae-stage').value=a?a.stage:'sourcing';
+  document.getElementById('ae-owner').value=a?a.owner:'Michael';
+  document.getElementById('ae-blocker').value=a?a.blocker||'':'';
+  document.getElementById('ae-nextstep').value=a?a.nextstep||'':'';
+  document.getElementById('ae-notes').value=a?a.notes||'':'';
+  document.getElementById('acq-edit-mo').style.display='flex';
+}
+function closeAcqEditModal(){document.getElementById('acq-edit-mo').style.display='none';acqEid=null;}
+function saveAcqEdit(){
+  const name=document.getElementById('ae-name').value.trim();if(!name)return;
+  const valStr=document.getElementById('ae-value').value.trim();
+  const valNum=parseFloat(valStr.replace(/[$MBK,]/g,''))||0;
+  const data={name,platform:document.getElementById('ae-platform').value,value:valStr,valueSortable:valNum,multiple:document.getElementById('ae-multiple').value.trim(),stage:document.getElementById('ae-stage').value,owner:document.getElementById('ae-owner').value,blocker:document.getElementById('ae-blocker').value.trim(),nextstep:document.getElementById('ae-nextstep').value.trim(),notes:document.getElementById('ae-notes').value.trim()};
+  if(acqEid){const a=acquisitions.find(x=>x.id===acqEid);if(a){Object.assign(a,data);a.log.push('Updated — '+ACQ_STAGE_LABELS[data.stage]);}}
+  else acquisitions.push({id:nAcqId++,...data,log:['Added']});
+  closeAcqEditModal();renderAll();
+}
+
+function openAcqDet(id){
+  const a=acquisitions.find(x=>x.id===id);if(!a)return;
+  document.getElementById('acq-det-b').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem">
+      <div>
+        <div style="font-size:17px;font-weight:700">${a.name}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="tag ${PLAT_TAGS[a.platform]||'tag-hcg'}">${PLAT_LABELS[a.platform]}</span>
+          <span class="pill ${ACQ_STAGE_PILLS[a.stage]}">${ACQ_STAGE_LABELS[a.stage]}</span>
+        </div>
+      </div>
+      <button class="btn" onclick="closeAcqDet()">Close</button>
+    </div>
+    <div class="drow"><div class="dl">Value</div><div class="dv" style="font-weight:700">${fmtDeal$(a.value)}</div></div>
+    <div class="drow"><div class="dl">Multiple / terms</div><div class="dv">${a.multiple||'—'}</div></div>
+    <div class="drow"><div class="dl">Owner</div><div class="dv">${a.owner}</div></div>
+    <div class="drow"><div class="dl">Blocker</div><div class="dv" style="color:${a.blocker?'#7a5100':'var(--text-4)'}">${a.blocker||'None'}</div></div>
+    <div class="drow"><div class="dl">Next step</div><div class="dv" style="color:var(--blue)">${a.nextstep||'—'}</div></div>
+    <div class="drow"><div class="dl">Notes</div><div class="dv" style="font-weight:400;text-align:right;max-width:65%">${a.notes||'—'}</div></div>
+    <div class="sl">Activity log</div>
+    <div style="margin-bottom:1rem">${(a.log||[]).map(e=>`<div class="log-e">${e}</div>`).join('')||'<div style="color:var(--text-3);font-size:13px">No entries</div>'}</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-dark" onclick="closeAcqDet();openAcqEditModal(${a.id})">Edit deal</button>
+    </div>`;
+  document.getElementById('acq-det-o').style.display='flex';
+}
+function closeAcqDet(){document.getElementById('acq-det-o').style.display='none';}
+
+// ─── SCORECARD ────────────────────────────────────────────────────────────
+function calcScore(platKey){
+  const platTasks = platKey==='all' ? tasks.filter(t=>t.type==='business') : tasks.filter(t=>t.platform===platKey);
+  const totalT = platTasks.length;
+  const doneT = platTasks.filter(t=>t.done).length;
+  const taskPct = totalT ? Math.round((doneT/totalT)*100) : 0;
+
+  const platRocks = [];
+  const rockPct = 0;
+  const onTrack = 0;
+  const atRisk = 0;
+  const offTrack = 0;
+
+  const platIssues = platKey==='all' ? issues : issues.filter(i=>i.platform===platKey);
+  const openIss = platIssues.filter(i=>i.status==='open'&&i.priority==='urgent').length;
+
+  const platAcq = platKey==='all' ? acquisitions : acquisitions.filter(a=>a.platform===platKey);
+  const activeAcq = platAcq.filter(a=>ACQ_ACTIVE.includes(a.stage)).length;
+
+  const health = offTrack>0||openIss>2?'red':atRisk>1||openIss>0?'amber':'green';
+  return {taskPct,rockPct,onTrack,atRisk,offTrack,openIss,activeAcq,health,totalT,doneT,platRocks:platRocks.length};
+}
+
+function rBriefScorecard(){
+  const s = calcScore('all');
+  const healthColor = s.health==='green'?'var(--green)':s.health==='amber'?'var(--amber)':'var(--red)';
+  const healthLabel = s.health==='green'?'On track':s.health==='amber'?'Needs attention':'Off track';
+  document.getElementById('brief-scorecard').innerHTML=`
+    <div class="sc-card"><div class="sc-label">Overall health</div><div class="sc-val" style="color:${healthColor};font-size:18px">${healthLabel}</div><div class="sc-target">Auto-calculated</div></div>
+    <div class="sc-card"><div class="sc-label">Task completion</div><div class="sc-val sc-${s.taskPct>=80?'green':s.taskPct>=50?'amber':'red'}">${s.taskPct}%</div><div class="sc-target">${s.doneT} of ${s.totalT} done · Target: 80%+</div></div>
+    
+    
+    <div class="sc-card"><div class="sc-label">Urgent open issues</div><div class="sc-val sc-${s.openIss===0?'green':s.openIss<=2?'amber':'red'}">${s.openIss}</div><div class="sc-target">Target: 0</div></div>
+    <div class="sc-card"><div class="sc-label">Active deals</div><div class="sc-val">${s.activeAcq}</div><div class="sc-target">Across all platforms</div></div>`;
+}
+
+function rPlatScorecard(){
+  const el = document.getElementById('plat-scorecard-content');
+  el.innerHTML = ['capital','industries','health','financial','terra','hixtech'].map(key=>{
+    const p = platforms.find(x=>x.key===key);
+    const s = calcScore(key);
+    const healthColor = s.health==='green'?'var(--green)':s.health==='amber'?'var(--amber)':'var(--red)';
+    return `<div class="card">
+      <div class="ch"><div><div class="ct">${p.name}</div><div class="ct-sub">Auto-calculated from tasks and deals</div></div>
+        <span style="font-size:12px;font-weight:700;color:${healthColor}">${s.health==='green'?'✓ On track':s.health==='amber'?'⚠ Needs attention':'✗ Off track'}</span>
+      </div>
+      <div class="sc-grid">
+        <div class="sc-card"><div class="sc-label">Task completion</div><div class="sc-val sc-${s.taskPct>=80?'green':s.taskPct>=50?'amber':'red'}">${s.taskPct}%</div><div class="sc-target">${s.doneT}/${s.totalT} done</div></div>
+        <div class="sc-card"><div class="sc-label">Urgent issues</div><div class="sc-val sc-${s.openIss===0?'green':s.openIss<=1?'amber':'red'}">${s.openIss}</div><div class="sc-target">Target: 0</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── PROJECTS DATA ────────────────────────────────────────────────────────
+let nProjId = 50, projEid = null;
+const projects = [
+  // ─── LEGAL DOCS ───────────────────────────────────────────────────────────
+  {id:20,name:'Hix Industries — Legal Docs',platform:'industries',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'All org docs, operating agreement, SPV agreement, and subscription agreement fully executed',notes:'Required legal foundation for the Industries SPV raise',milestones:[
+    {id:200,text:'Org docs',due:'',done:false,deliverables:[]},
+    {id:201,text:'Operating Agreement',due:'',done:false,deliverables:[]},
+    {id:202,text:'SPV Agreement',due:'',done:false,deliverables:[]},
+    {id:203,text:'Subscription Agreement',due:'',done:false,deliverables:[]},
+  ]},
+  {id:21,name:'Hix Health — Legal Docs',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'All org docs, operating agreement, SPV agreement, and subscription agreement fully executed',notes:'Required legal foundation for the Health SPV raise',milestones:[
+    {id:210,text:'Org docs',due:'',done:false,deliverables:[]},
+    {id:211,text:'Operating Agreement',due:'',done:false,deliverables:[]},
+    {id:212,text:'SPV Agreement',due:'',done:false,deliverables:[]},
+    {id:213,text:'Subscription Agreement',due:'',done:false,deliverables:[]},
+  ]},
+  {id:22,name:'HixTech — Legal Docs',platform:'hixtech',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'All org docs, operating agreement, SPV agreement, and subscription agreement fully executed',notes:'Required legal foundation for HixTech',milestones:[
+    {id:220,text:'Org docs',due:'',done:false,deliverables:[]},
+    {id:221,text:'Operating Agreement',due:'',done:false,deliverables:[]},
+    {id:222,text:'SPV Agreement',due:'',done:false,deliverables:[]},
+    {id:223,text:'Subscription Agreement',due:'',done:false,deliverables:[]},
+  ]},
+  {id:1,name:'Encounter Women\'s Residential',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'med',outcome:'',notes:'Greenfield — women\'s residential behavioral health facility',milestones:[],nextstep:''},
+  {id:2,name:'PULSE',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'med',outcome:'',notes:'Greenfield — Hix Health initiative',milestones:[],nextstep:''},
+  {id:3,name:'Virtual Clinics',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'med',outcome:'',notes:'Greenfield — virtual care platform for Hix Health',milestones:[],nextstep:''},
+  {id:4,name:'Micro Hospital',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'med',outcome:'',notes:'Greenfield — community-based micro hospital expansion',milestones:[],nextstep:''},
+  {id:5,name:'Therapy App',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'med',outcome:'',notes:'Greenfield — behavioral health therapy application',milestones:[],nextstep:''},
+  {id:6,name:'HOIT Group',platform:'capital',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'Define HOIT mandate, service offering, fee structure, and first engagement',notes:'Ops improvement · deal sourcing · AR hospitals first target · feeds governor initiative',milestones:[],nextstep:''},
+  {id:7,name:'Project Indomitus',platform:'hixtech',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'Build a voice-powered AI operating system that runs HCG — reads the dashboard, processes emails, takes actions, and responds like Jarvis',notes:'Voice interface powered by Claude + ElevenLabs TTS + Whisper STT. Sits on top of the HCG dashboard backend. Assign to TrueWellth developer post-acquisition close. Full build estimate: 60-90 days once foundation is in place.',milestones:[],nextstep:''},
+];
+let nMilId = 30, nDelId = 30;
+
+// ─── V/TO STORAGE ─────────────────────────────────────────────────────────
+const VTO_FIELDS = ['vto-values','vto-purpose','vto-niche','vto-10yr','vto-3yr','vto-1yr-rev','vto-1yr-profit','vto-1yr-goals','vto-acct','vto-hires','vto-market','vto-issues'];
+function saveVTO(){
+  VTO_FIELDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) try{localStorage.setItem('hcg_'+id,el.value);}catch(e){}
+  });
+  alert('V/TO saved!');
+}
+function loadVTO(){
+  VTO_FIELDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) try{const v=localStorage.getItem('hcg_'+id);if(v)el.value=v;}catch(e){}
+  });
+}
+
+// ─── TOP 3 ENGINE ─────────────────────────────────────────────────────────
+function calcTop3(){
+  const candidates = [];
+  const today = new Date();
+
+  // Deliverables due in next 48h from projects
+  projects.filter(p=>p.status==='active').forEach(p=>{
+    p.milestones.forEach(m=>{
+      if(m.done) return;
+      const due = m.due ? new Date(m.due) : null;
+      const daysUntil = due ? Math.ceil((due-today)/(1000*60*60*24)) : 99;
+      m.deliverables.filter(d=>!d.done).forEach(d=>{
+        candidates.push({
+          text: d.text,
+          context: `${p.name} · ${m.text}`,
+          platform: p.platform,
+          score: daysUntil<=0?1000:daysUntil<=1?500:daysUntil<=3?200:daysUntil<=7?100:50,
+          type:'deliverable'
+        });
+      });
+    });
+  });
+
+  // Urgent tasks
+  tasks.filter(t=>!t.done&&t.urgent).forEach(t=>{
+    candidates.push({text:t.text,context:PLAT_LABELS[t.platform],platform:t.platform,score:300,type:'task',id:t.id});
+  });
+
+  // Tasks due today or overdue
+  tasks.filter(t=>!t.done&&t.due&&!t.urgent).forEach(t=>{
+    const [_y,_m,_d]=t.due.split('-').map(Number);const d=new Date(_y,_m-1,_d);
+    const diff=Math.round((d-today)/(1000*60*60*24));
+    if(diff<=0) candidates.push({text:t.text,context:PLAT_LABELS[t.platform],platform:t.platform,score:400,type:'task',id:t.id});
+    else if(diff<=1) candidates.push({text:t.text,context:PLAT_LABELS[t.platform],platform:t.platform,score:200,type:'task',id:t.id});
+  });
+
+  // Urgent open issues
+  issues.filter(i=>i.status==='open'&&i.priority==='urgent').forEach(iss=>{
+    candidates.push({text:`Resolve: ${iss.text}`,context:PLAT_LABELS[iss.platform],platform:iss.platform,score:350,type:'issue'});
+  });
+
+  candidates.sort((a,b)=>b.score-a.score);
+  const seen=new Set();
+  const top3=[];
+  for(const c of candidates){
+    const key=c.text.substring(0,40);
+    if(!seen.has(key)&&top3.length<3){seen.add(key);top3.push(c);}
+  }
+  return top3;
+}
+
+// ─── PROJECTS TAB STATE ───────────────────────────────────────────────────
+let projPlatFilter = 'all';
+function setProjTab(key, el){
+  projPlatFilter = key;
+  document.querySelectorAll('#proj-tab-bar .pst').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const labels = {all:'All Projects',capital:'Hix Capital',industries:'Hix Industries',health:'Hix Health',financial:'Hix Financial',terra:'HixTerra',hixtech:'HixTech',hcg:'HCG Enterprise'};
+  const titleEl = document.getElementById('proj-tab-title');
+  if(titleEl) titleEl.textContent = labels[key]||key;
+  rProjects();
+}
+
+// ─── ACQUISITIONS TAB STATE ───────────────────────────────────────────────
+let acqPlatFilter = 'all';
+function setAcqTab(key, el){
+  acqPlatFilter = key;
+  document.querySelectorAll('#acq-tab-bar .pst').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const labels = {all:'All Acquisitions',capital:'Hix Capital',industries:'Hix Industries',health:'Hix Health',financial:'Hix Financial',terra:'HixTerra',hixtech:'HixTech'};
+  const titleEl = document.getElementById('acq-tab-title');
+  if(titleEl) titleEl.textContent = labels[key]||key;
+  rAcqTable();
+}
+
+// ─── PROJECTS FUNCTIONS ────────────────────────────────────────────────────
+function rProjects(){
+  const pf = projPlatFilter || 'all';
+  const sf=document.getElementById('proj-status-filter')?.value||'active';
+  let list=[...projects];
+  if(pf!=='all') list=list.filter(p=>p.platform===pf);
+  if(sf!=='all') list=list.filter(p=>p.status===sf);
+
+  // Metrics
+  const active=projects.filter(p=>p.status==='active');
+  const urgentDelivs=getUpcomingDeliverables(2).length;
+  document.getElementById('proj-mets').innerHTML=`
+    <div class="met"><div class="met-label">Active projects</div><div class="met-val">${active.length}</div><div class="met-sub">Across all platforms</div></div>
+    <div class="met"><div class="met-label">Deliverables due 48h</div><div class="met-val" style="color:${urgentDelivs>0?'var(--red)':'var(--green)'}">${urgentDelivs}</div><div class="met-sub">In Top 3 today</div></div>
+    <div class="met"><div class="met-label">Total milestones</div><div class="met-val">${active.reduce((s,p)=>s+p.milestones.length,0)}</div><div class="met-sub">Across active projects</div></div>`;
+
+  const el=document.getElementById('proj-list');
+  if(!list.length){el.innerHTML='<div class="empty">No projects match — add your first project above</div>';return;}
+  el.innerHTML=list.map(p=>{
+    const totalMil=p.milestones.length;
+    const doneMil=p.milestones.filter(m=>m.done).length;
+    const pct=totalMil?Math.round((doneMil/totalMil)*100):0;
+    const color=PLAT_COLORS[p.platform]||'#888';
+    const dueDate=p.due?new Date(p.due):null;
+    const daysLeft=dueDate?Math.ceil((dueDate-new Date())/(1000*60*60*24)):null;
+    const statusColor=p.status==='active'?'var(--green)':p.status==='paused'?'var(--amber)':'var(--text-3)';
+    return `<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openProjDet(${p.id})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:var(--text)">${p.name}</div>
+          <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+            <span class="tag ${PLAT_TAGS[p.platform]||'tag-hcg'}">${PLAT_LABELS[p.platform]}</span>
+            <span class="pill ${PRIO_PILLS[p.priority]}">${PRIO_LABELS[p.priority]}</span>
+            <span style="font-size:11px;color:var(--text-3)">${p.owner}</span>
+            ${daysLeft!==null?`<span style="font-size:11px;color:${daysLeft<=2?'var(--red)':daysLeft<=7?'var(--amber)':'var(--text-3)'}">${daysLeft>0?daysLeft+'d left':'Due today'}</span>`:''}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:700;color:${color}">${pct}%</div>
+          <div style="font-size:11px;color:var(--text-3)">${doneMil}/${totalMil} milestones</div>
+        </div>
+      </div>
+      <div class="rock-progress"><div class="rock-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:6px;line-height:1.5">${p.outcome||''}</div>
+      <div style="display:flex;gap:6px;margin-top:10px" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="openProjModal(${p.id})">Edit</button>
+        <button class="btn btn-sm btn-dark" onclick="openProjDet(${p.id})">View milestones</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getUpcomingDeliverables(days){
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()+days);
+  const result=[];
+  projects.filter(p=>p.status==='active').forEach(p=>{
+    p.milestones.forEach(m=>{
+      if(m.done) return;
+      const due=m.due?new Date(m.due):null;
+      if(due&&due<=cutoff){
+        m.deliverables.filter(d=>!d.done).forEach(d=>{
+          result.push({...d,milestoneName:m.text,projectName:p.name,platform:p.platform,due:m.due});
+        });
+      }
+    });
+  });
+  return result;
+}
+
+function openProjDet(id){
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  const color=PLAT_COLORS[p.platform]||'#888';
+  let html=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;gap:8px">
+      <div>
+        <div style="font-size:17px;font-weight:700">${p.name}</div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <span class="tag ${PLAT_TAGS[p.platform]||'tag-hcg'}">${PLAT_LABELS[p.platform]}</span>
+          <span class="pill ${PRIO_PILLS[p.priority]}">${PRIO_LABELS[p.priority]}</span>
+        </div>
+      </div>
+      <button class="btn" onclick="closeProjDet()">Close</button>
+    </div>
+    ${p.outcome?`<div style="font-size:13px;color:var(--text-2);margin-bottom:1rem;padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);line-height:1.5">🎯 <strong>Done looks like:</strong> ${p.outcome}</div>`:''}
+    <div class="sl">Milestones & deliverables</div>`;
+  p.milestones.forEach((m,mi)=>{
+    const milPct=m.deliverables.length?Math.round((m.deliverables.filter(d=>d.done).length/m.deliverables.length)*100):0;
+    html+=`<div style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="task-check ${m.done?'checked':''}" onclick="toggleMilestone(${p.id},${m.id})" style="cursor:pointer"></div>
+          <div style="font-size:13px;font-weight:700;${m.done?'text-decoration:line-through;color:var(--text-4)':''}">${m.text}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${m.due?`<span style="font-size:11px;color:var(--text-3)">${m.due}</span>`:''}
+          <span style="font-size:11px;font-weight:600;color:${color}">${milPct}%</span>
+        </div>
+      </div>
+      <div style="padding-left:26px">`;
+    m.deliverables.forEach(d=>{
+      html+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border-light)">
+        <div class="task-check ${d.done?'checked':''}" onclick="toggleDeliverable(${p.id},${m.id},${d.id})" style="cursor:pointer;width:14px;height:14px;flex-shrink:0"></div>
+        <div style="font-size:12px;${d.done?'text-decoration:line-through;color:var(--text-4)':''}">${d.text}</div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+  html+=`<div style="display:flex;gap:8px;margin-top:1rem">
+    <button class="btn btn-dark" onclick="closeProjDet();openProjModal(${p.id})">Edit project</button>
+  </div>`;
+  document.getElementById('proj-det-b').innerHTML=html;
+  document.getElementById('proj-det-o').style.display='flex';
+}
+function closeProjDet(){document.getElementById('proj-det-o').style.display='none';}
+
+function toggleMilestone(projId,milId){
+  const p=projects.find(x=>x.id===projId);if(!p)return;
+  const m=p.milestones.find(x=>x.id===milId);if(!m)return;
+  m.done=!m.done;
+  if(m.done) m.deliverables.forEach(d=>d.done=true);
+  openProjDet(projId);renderAll();
+}
+function toggleDeliverable(projId,milId,delId){
+  const p=projects.find(x=>x.id===projId);if(!p)return;
+  const m=p.milestones.find(x=>x.id===milId);if(!m)return;
+  const d=m.deliverables.find(x=>x.id===delId);if(!d)return;
+  d.done=!d.done;
+  if(m.deliverables.every(d=>d.done)) m.done=true;
+  openProjDet(projId);renderAll();
+}
+
+function addMilestoneInput(text='',due=''){
+  const container=document.getElementById('milestone-inputs');
+  const idx=container.children.length;
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center';
+  div.innerHTML=`<input type="text" placeholder="Milestone ${idx+1}" value="${text}" style="flex:1;font-size:13px;padding:6px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm)" class="mil-text">
+    <input type="date" value="${due}" style="font-size:12px;padding:6px 8px;border:0.5px solid var(--border);border-radius:var(--radius-sm)" class="mil-due">
+    <button class="btn-del" onclick="this.parentElement.remove()" title="Remove">✕</button>`;
+  container.appendChild(div);
+}
+
+function openProjModal(id){
+  projEid=id||null;
+  const p=id?projects.find(x=>x.id===id):null;
+  document.getElementById('proj-mo-title').textContent=p?'Edit project':'New project';
+  document.getElementById('p-name').value=p?p.name:'';
+  document.getElementById('p-platform').value=p?p.platform:'hcg';
+  document.getElementById('p-owner').value=p?p.owner:'Michael';
+  document.getElementById('p-due').value=p?p.due||'':'';
+  document.getElementById('p-status').value=p?p.status:'active';
+  document.getElementById('p-priority').value=p?p.priority:'high';
+  document.getElementById('p-outcome').value=p?p.outcome||'':'';
+  document.getElementById('p-notes').value=p?p.notes||'':'';
+  // Milestones
+  const mc=document.getElementById('milestone-inputs');
+  mc.innerHTML='';
+  if(p) p.milestones.forEach(m=>addMilestoneInput(m.text,m.due||''));
+  document.getElementById('proj-mo').style.display='flex';
+}
+function closeProjModal(){document.getElementById('proj-mo').style.display='none';projEid=null;}
+function saveProject(){
+  const name=document.getElementById('p-name').value.trim();if(!name)return;
+  const milEls=document.getElementById('milestone-inputs').querySelectorAll('div');
+  const mils=[];
+  milEls.forEach((el,i)=>{
+    const t=el.querySelector('.mil-text')?.value.trim();
+    const d=el.querySelector('.mil-due')?.value||'';
+    if(t) mils.push({id:nMilId++,text:t,due:d,done:false,deliverables:[]});
+  });
+  const data={name,platform:document.getElementById('p-platform').value,owner:document.getElementById('p-owner').value,rockId:null,due:document.getElementById('p-due').value,status:document.getElementById('p-status').value,priority:document.getElementById('p-priority').value,outcome:document.getElementById('p-outcome').value.trim(),notes:document.getElementById('p-notes').value.trim()};
+  if(projEid){
+    const p=projects.find(x=>x.id===projEid);
+    if(p){Object.assign(p,data);if(mils.length)p.milestones=mils;}
+  } else {
+    projects.push({id:nProjId++,...data,milestones:mils});
+  }
+  closeProjModal();renderAll();
+}
+
+// ─── UPDATED EXEC LIST — project deliverables first, then daily todos ──────
+function rExecUpdated(){
+  const filter=document.getElementById('exec-filter')?.value||'all';
+  const today=new Date(); today.setHours(0,0,0,0);
+  const FAR_FUTURE=new Date('2099-12-31');
+
+  function taskSortKey(t){
+    if(t.urgent) return new Date('2000-01-01'); // urgent always first
+    if(t.due){const[_y,_m,_d]=t.due.split('-').map(Number);return new Date(_y,_m-1,_d);}
+    return FAR_FUTURE; // no due date goes to bottom
+  }
+
+  function dueBadge(t){
+    if(!t.due&&!t.urgent) return '';
+    if(t.urgent) return `<span style="font-size:10px;font-weight:700;color:#fff;background:var(--red);padding:1px 7px;border-radius:10px">URGENT</span>`;
+    const [_y,_m,_d]=t.due.split('-').map(Number);const d=new Date(_y,_m-1,_d);
+    const diff=Math.round((d-today)/(1000*60*60*24));
+    const color=diff<0?'var(--red)':diff===0?'var(--red)':diff<=3?'var(--amber)':'var(--text-3)';
+    const label=diff<0?`${Math.abs(diff)}d overdue`:diff===0?'Today':diff===1?'Tomorrow':`${t.due.slice(5).replace('-','/')}`;
+    return `<span style="font-size:11px;font-weight:600;color:${color}">${label}</span>`;
+  }
+
+  let html='';
+
+  // --- Project deliverables ---
+  if(filter==='all'||filter==='project'){
+    const delivs=getUpcomingDeliverables(14);
+    if(delivs.length){
+      html+=`<div class="exec-section">
+        <div class="exec-section-header">
+          <div class="exec-section-title" style="color:var(--blue)">📋 Project deliverables</div>
+          <div class="exec-section-count">${delivs.length}</div>
+        </div>`;
+      delivs.forEach(d=>{
+        const dd=d.due?new Date(d.due):null; dd?.setHours(0,0,0,0);
+        const diff=dd?Math.ceil((dd-today)/(1000*60*60*24)):null;
+        const dcolor=diff!==null?(diff<0?'var(--red)':diff===0?'var(--red)':diff<=3?'var(--amber)':'var(--text-3)'):'var(--text-3)';
+        const dlabel=diff!==null?(diff<0?`${Math.abs(diff)}d overdue`:diff===0?'Today':diff===1?'Tomorrow':d.due?.slice(5).replace('-','/')):null;
+        html+=`<div class="task-item">
+          <div class="task-check ${d.done?'checked':''}" onclick="toggleDeliverableById(${d.id})"></div>
+          <div class="task-content">
+            <div class="task-text ${d.done?'done':''}">${d.text}</div>
+            <div class="task-meta">
+              <span class="tag ${PLAT_TAGS[d.platform]||'tag-hcg'}">${PLAT_LABELS[d.platform]}</span>
+              <span style="font-size:11px;color:var(--text-3)">${d.projectName}</span>
+              ${dlabel?`<span style="font-size:11px;font-weight:600;color:${dcolor}">${dlabel}</span>`:''}
+            </div>
+          </div>
+        </div>`;
+      });
+      html+='</div>';
+    }
+  }
+
+  // --- Tasks sorted by due date ---
+  if(filter!=='project'){
+    let list=[...tasks];
+    if(filter==='urgent') list=list.filter(t=>t.urgent&&!t.done);
+    else if(filter==='open') list=list.filter(t=>!t.done);
+    else if(filter==='personal') list=list.filter(t=>t.type==='personal');
+
+    const open=list.filter(t=>!t.done).sort((a,b)=>taskSortKey(a)-taskSortKey(b));
+    const done=list.filter(t=>t.done);
+
+    if(open.length){
+      html+=`<div class="exec-section">
+        <div class="exec-section-header">
+          <div class="exec-section-title">To do</div>
+          <div class="exec-section-count">${open.length}</div>
+        </div>`;
+      open.forEach(t=>{
+        html+=`<div class="task-item" onclick="toggleTask(${t.id})">
+          <div class="task-check" onclick="event.stopPropagation();toggleTask(${t.id})"></div>
+          <div class="task-content">
+            <div class="task-text">${t.text}</div>
+            <div class="task-meta">
+              <span class="tag ${PLAT_TAGS[t.platform]||'tag-hcg'}">${PLAT_LABELS[t.platform]||t.platform}</span>
+              ${dueBadge(t)}
+              <span style="font-size:11px;color:var(--text-3)">${t.owner}</span>
+            </div>
+            ${t.notes?`<div class="task-note">${t.notes}</div>`:''}
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button class="btn btn-sm" onclick="event.stopPropagation();openTaskEdit(${t.id})">Edit</button>
+            <button class="btn-del" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button>
+          </div>
+        </div>`;
+      });
+      html+='</div>';
+    }
+
+    if(done.length){
+      html+=`<div class="exec-section">
+        <div class="exec-section-header">
+          <div class="exec-section-title" style="color:var(--green)">✅ Completed</div>
+          <div class="exec-section-count">${done.length}</div>
+        </div>`;
+      done.forEach(t=>{
+        html+=`<div class="task-item">
+          <div class="task-check checked" onclick="toggleTask(${t.id})"></div>
+          <div class="task-content">
+            <div class="task-text done">${t.text}</div>
+            <div class="task-meta"><span class="tag ${PLAT_TAGS[t.platform]||'tag-hcg'}">${PLAT_LABELS[t.platform]||t.platform}</span></div>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button class="btn-del" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button>
+          </div>
+        </div>`;
+      });
+      html+='</div>';
+    }
+  }
+
+  if(!html) html='<div class="empty">No items — add your first task above</div>';
+  document.getElementById('exec-list').innerHTML=html;
+}
+
+function toggleDeliverableById(delId){
+  let found=false;
+  projects.forEach(p=>{
+    p.milestones.forEach(m=>{
+      const d=m.deliverables.find(x=>x.id===delId);
+      if(d){d.done=!d.done;found=true;if(m.deliverables.every(x=>x.done))m.done=true;}
+    });
+  });
+  if(found) renderAll();
+}
+
+// CSS handled by main stylesheet
+function renderAll(){
+  try{
+    document.getElementById('brief-date-heading').textContent=DATE_STR;
+    const done=tasks.filter(t=>t.done).length;
+    const open=tasks.filter(t=>!t.done).length;
+    const total=tasks.length;
+    document.getElementById('brief-sub').textContent=`${open} items remaining · ${done} completed`;
+    document.getElementById('top-progress-brief').textContent=total?`${done}/${total} done`:'';
+  }catch(e){}
+  rBriefMets();rBriefScorecard();
+  rExecUpdated();
+  rPlatMets();rPlatformCards();rPlatTasks();rIssues();rAcqMets();rAcqTable();rPlatScorecard();
+  rInvMets();rInvInsight();rFunnel();rInvTable();
+  rPersonal();rDR();rProjects();
+}
+function rExec(){ rExecUpdated(); }
+
+renderAll();
+
+// ── JARVIS VOICE ─────────────────────────────────────────
+let voiceCooldown=false;
+window.dodecaGlowBoost=0;
+let _pulseInt=null;
+function _startPulse(){let t=0;_pulseInt=setInterval(()=>{t+=0.15;window.dodecaGlowBoost=0.5+Math.sin(t*3.5)*0.5;},30);}
+function _stopPulse(){clearInterval(_pulseInt);window.dodecaGlowBoost=0;}
+function speakIndomitus(){
+  if(voiceCooldown)return;
+  voiceCooldown=true;
+  setTimeout(()=>{voiceCooldown=false;},8000);
+  const msg=new SpeechSynthesisUtterance();
+  msg.text="Indomitus active. All hail Midas.";
+  msg.volume=1;msg.rate=0.88;msg.pitch=0.85;
+  const voices=window.speechSynthesis.getVoices();
+  const pref=['Google UK English Male','Daniel','Microsoft George','Arthur','Microsoft Mark','Microsoft David','Alex'];
+  let chosen=null;
+  for(const n of pref){chosen=voices.find(v=>v.name.includes(n));if(chosen)break;}
+  if(!chosen)chosen=voices.find(v=>v.lang&&v.lang.startsWith('en-GB'))||voices.find(v=>v.lang&&v.lang.startsWith('en'))||voices[0];
+  if(chosen)msg.voice=chosen;
+  _startPulse();
+  msg.onend=_stopPulse;msg.onerror=_stopPulse;
+  setTimeout(()=>{window.speechSynthesis.cancel();window.speechSynthesis.speak(msg);},180);
+}
+if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>{};}
+document.addEventListener('DOMContentLoaded',()=>{
+  const bv=document.getElementById('view-brief');
+  if(bv)bv.addEventListener('click',(e)=>{
+    if(e.target.closest('.card,.mb,.det-b,.mo,.det-o,button,select,input,a'))return;
+    speakIndomitus();
+  });
+});
+
+// ── BACKGROUND DODECAHEDRON — pure WebGL, zero dependencies ──
+function showBg(v){
+  const cv=document.getElementById('dodeca-bg-canvas');
+  const ov=document.getElementById('brief-bg-overlay');
+  if(cv)cv.style.display=v?'block':'none';
+  if(ov)ov.style.display=v?'block':'none';
+}
+
+const _origSv=window.sv;
+window.sv=function(id,el){_origSv(id,el);showBg(id==='brief');};
+
+function initDodeca(){
+  const canvas=document.getElementById('dodeca-bg-canvas');
+  if(!canvas)return;
+  const gl=canvas.getContext('webgl')||canvas.getContext('experimental-webgl');
+  if(!gl){console.warn('WebGL not available');return;}
+
+  // Dodecahedron geometry — golden ratio construction
+  const ph=(1+Math.sqrt(5))/2, ip=1/ph;
+  // 20 vertices
+  const rv=[
+    [1,1,1],[1,1,-1],[1,-1,1],[1,-1,-1],
+    [-1,1,1],[-1,1,-1],[-1,-1,1],[-1,-1,-1],
+    [0,ip,ph],[0,ip,-ph],[0,-ip,ph],[0,-ip,-ph],
+    [ip,ph,0],[ip,-ph,0],[-ip,ph,0],[-ip,-ph,0],
+    [ph,0,ip],[ph,0,-ip],[-ph,0,ip],[-ph,0,-ip]
+  ].map(v=>{const l=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);return[v[0]/l,v[1]/l,v[2]/l];});
+
+  // 12 pentagonal faces
+  const faces=[
+    [0,8,10,2,16],[0,16,17,1,12],[0,12,14,4,8],
+    [1,17,3,11,9],[1,9,5,14,12],[2,10,6,15,13],
+    [2,13,3,17,16],[3,13,15,7,11],[4,14,5,19,18],
+    [4,18,6,10,8],[5,9,11,7,19],[6,18,19,7,15]
+  ];
+
+  // Unique edges
+  const es=new Set(), edges=[];
+  faces.forEach(f=>{for(let i=0;i<5;i++){const a=f[i],b=f[(i+1)%5];const k=Math.min(a,b)+'-'+Math.max(a,b);if(!es.has(k)){es.add(k);edges.push([a,b]);}}});
+
+  // Two shells of vertices
+  const vdata=[];
+  [1.0,1.6].forEach(s=>edges.forEach(([a,b])=>{
+    vdata.push(rv[a][0]*s,rv[a][1]*s,rv[a][2]*s,rv[b][0]*s,rv[b][1]*s,rv[b][2]*s);
+  }));
+
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vdata),gl.STATIC_DRAW);
+
+  // Vertex shader
+  const vs=gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vs,`attribute vec3 p;uniform mat4 mvp;void main(){gl_Position=mvp*vec4(p,1.0);}`);
+  gl.compileShader(vs);
+
+  // Fragment shader
+  const fs=gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fs,`precision mediump float;uniform float a;void main(){gl_FragColor=vec4(1.0,1.0,1.0,a);}`);
+  gl.compileShader(fs);
+
+  const prog=gl.createProgram();
+  gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.useProgram(prog);
+
+  const pLoc=gl.getAttribLocation(prog,'p');
+  const mvpLoc=gl.getUniformLocation(prog,'mvp');
+  const aLoc=gl.getUniformLocation(prog,'a');
+
+  gl.enableVertexAttribArray(pLoc);
+  gl.vertexAttribPointer(pLoc,3,gl.FLOAT,false,0,0);
+
+  // Matrix math
+  function mul(a,b){const o=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[i*4+k]*b[k*4+j];o[i*4+j]=s;}return o;}
+  function persp(fov,asp,n,f){const t=Math.tan(fov/2),o=new Float32Array(16);o[0]=1/(t*asp);o[5]=1/t;o[10]=(f+n)/(n-f);o[11]=-1;o[14]=2*f*n/(n-f);return o;}
+  function tran(x,y,z){const o=new Float32Array(16);o[0]=o[5]=o[10]=o[15]=1;o[12]=x;o[13]=y;o[14]=z;return o;}
+  function rx(a){const c=Math.cos(a),s=Math.sin(a),o=new Float32Array(16);o[0]=1;o[5]=c;o[6]=s;o[9]=-s;o[10]=c;o[15]=1;return o;}
+  function ry(a){const c=Math.cos(a),s=Math.sin(a),o=new Float32Array(16);o[0]=c;o[2]=-s;o[5]=1;o[8]=s;o[10]=c;o[15]=1;return o;}
+  function rz(a){const c=Math.cos(a),s=Math.sin(a),o=new Float32Array(16);o[0]=c;o[1]=s;o[4]=-s;o[5]=c;o[10]=1;o[15]=1;return o;}
+
+  let mx=0,my=0,tx=0,ty=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX/window.innerWidth-0.5;my=e.clientY/window.innerHeight-0.5;});
+
+  function resize(){
+    const p=canvas.parentElement||document.body;
+    canvas.width=p.offsetWidth||window.innerWidth;
+    canvas.height=Math.max(p.offsetHeight,window.innerHeight);
+    gl.viewport(0,0,canvas.width,canvas.height);
+  }
+  window.addEventListener('resize',resize);resize();
+
+  const ne=edges.length;
+  let t=0;
+  function draw(){
+    requestAnimationFrame(draw);t+=0.006;
+    tx+=(mx*0.5-tx)*0.02;ty+=(-my*0.5-ty)*0.02;
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+    const R=mul(mul(rx(t*0.07+ty*0.4),ry(t*0.10+tx*0.4)),rz(t*0.04));
+    const asp=canvas.width/Math.max(canvas.height,1);
+    const mvp=mul(persp(0.9,asp,0.1,100),mul(tran(0,0,-3.5),R));
+    gl.uniformMatrix4fv(mvpLoc,false,mvp);
+    const br=0.22+Math.sin(t*0.7)*0.06+(window.dodecaGlowBoost||0)*0.2;
+    gl.uniform1f(aLoc,Math.min(0.45,br));
+    gl.drawArrays(gl.LINES,0,ne*2);
+    gl.uniform1f(aLoc,Math.min(0.16,br*0.4));
+    gl.drawArrays(gl.LINES,ne*2,ne*2);
+  }
+  draw();
+  setTimeout(()=>showBg(true),150);
+}
+
+window.addEventListener('load',function(){
+  // Init dodecahedron first — synchronous WebGL setup
+  try{ initDodeca(); }catch(e){ console.warn('Dodeca error:',e); }
+});
+
+// ── INTEL / NEWS ──────────────────────────────────────────
+const NEWS_API_KEY='4902b1b8e64448e09b3cda442698f03d';
+const NEWS_BASE='https://newsapi.org/v2/everything';
+const NEWS_TOP='https://newsapi.org/v2/top-headlines';
+const INTEL_CATS=[
+  {id:'markets',label:'Markets & Capital',url:NEWS_TOP,params:{category:'business',language:'en',pageSize:6}},
+  {id:'manda',label:'M&A & Private Equity',url:NEWS_BASE,params:{q:'mergers acquisitions private equity',language:'en',sortBy:'publishedAt',pageSize:6}},
+  {id:'healthcare',label:'Healthcare',url:NEWS_BASE,params:{q:'healthcare hospital investment',language:'en',sortBy:'publishedAt',pageSize:6}},
+  {id:'arkansas',label:'Arkansas & Regional',url:NEWS_BASE,params:{q:'Arkansas business economy',language:'en',sortBy:'publishedAt',pageSize:6}},
+  {id:'tech',label:'AI & Technology',url:NEWS_BASE,params:{q:'artificial intelligence startup investment',language:'en',sortBy:'publishedAt',pageSize:6}}
+];
+let intelCache={};
+async function fetchCat(cat){
+  if(intelCache[cat.id])return intelCache[cat.id];
+  if(window.location.protocol==='file:'){return[];}
+  try{
+    const p=new URLSearchParams({...cat.params,apiKey:NEWS_API_KEY});
+    const r=await fetch(`${cat.url}?${p}`);
+    const d=await r.json();
+    if(d.status==='ok'&&d.articles){
+      const a=d.articles.filter(x=>x.title&&x.title!=='[Removed]').slice(0,6);
+      intelCache[cat.id]=a;return a;
+    }
+    return [];
+  }catch(e){return [];}
+}
+function tAgo(ds){const d=Date.now()-new Date(ds).getTime(),m=Math.floor(d/60000);if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
+function aCard(a,compact){
+  const src=a.source?.name||'';const t=a.publishedAt?tAgo(a.publishedAt):'';
+  if(compact)return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);cursor:pointer" onclick="window.open('${a.url}','_blank')"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:2px">${a.title}</div><div style="display:flex;gap:8px"><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3)">${src}</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-4)">${t}</span></div></div><span style="font-size:10px;color:var(--text-4)">↗</span></div>`;
+  return `<div style="padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:6px;transition:border-color 0.12s" onmouseover="this.style.borderColor='var(--border-mid)'" onmouseout="this.style.borderColor='var(--border)'" onclick="window.open('${a.url}','_blank')"><div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px">${a.title}</div>${a.description?`<div style="font-size:11px;color:var(--text-4);line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${a.description}</div>`:''}<div style="display:flex;gap:8px;flex-wrap:wrap"><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);background:var(--card);padding:2px 7px;border-radius:2px;border:1px solid var(--border)">${src}</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-4)">${t}</span><span style="font-size:10px;color:var(--text-4);margin-left:auto">Read ↗</span></div></div>`;
+}
+async function fetchIntel(mode){
+  if(mode==='brief'){
+    const el=document.getElementById('morning-intel-feed');
+    if(!el)return;
+    el.innerHTML='<div class="empty" style="padding:0.75rem 0">Loading...</div>';
+    const [m,p]=await Promise.all([fetchCat(INTEL_CATS[0]),fetchCat(INTEL_CATS[1])]);
+    const combined=[...m.slice(0,3),...p.slice(0,2)].slice(0,5);
+    el.innerHTML=combined.length?combined.map(a=>aCard(a,true)).join(''):'<div class="empty" style="padding:0.75rem 0">No articles available</div>';
+    return;
+  }
+  const ct=document.getElementById('intel-full-container');
+  if(!ct)return;
+  ct.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:14px">${INTEL_CATS.map(cat=>`<div class="card"><div class="ch"><div><div class="ct">${cat.label}</div><div class="ct-sub">Live feed</div></div><div style="font-family:var(--font-mono);font-size:9px;color:var(--text-4)" id="ic-${cat.id}">Loading...</div></div><div id="if-${cat.id}"><div class="empty" style="padding:1rem 0">Pulling...</div></div></div>`).join('')}</div>`;
+  INTEL_CATS.forEach(async cat=>{
+    const arts=await fetchCat(cat);
+    const f=document.getElementById('if-'+cat.id),cc=document.getElementById('ic-'+cat.id);
+    if(!f)return;
+    if(cc)cc.textContent=arts.length+' articles';
+    f.innerHTML=arts.length?arts.map(a=>aCard(a,false)).join(''):'<div class="empty" style="padding:1rem 0">No articles found</div>';
+  });
+}
+window.addEventListener('load',()=>{
+  // Delay intel fetch — don't let API errors affect page init
+  setTimeout(()=>{
+    try{ fetchIntel('brief'); }catch(e){ console.log('Intel unavailable (local file)'); }
+  }, 2000);
+});
+
+// ── HERO DODECAHEDRON — Three.js (exact working version, scaled up) ──
+(function initDodecahedron(){
+  const canvas = document.getElementById('hero-canvas');
+  if(!canvas || typeof THREE === 'undefined'){
+    console.warn('Hero dodeca: missing canvas or THREE');
+    return;
+  }
+
+  const SIZE = Math.min(window.innerWidth * 0.7, 600);
+
+  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(SIZE, SIZE);
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.z = 3.2;
+
+  const geo = new THREE.DodecahedronGeometry(1, 0);
+
+  // White wireframe
+  const wireMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.7
+  });
+  const wireMesh = new THREE.Mesh(geo, wireMat);
+  scene.add(wireMesh);
+
+  // Dark inner fill
+  const solidMat = new THREE.MeshBasicMaterial({
+    color: 0x050505,
+    transparent: true,
+    opacity: 0.5,
+    side: THREE.BackSide
+  });
+  const solidMesh = new THREE.Mesh(geo, solidMat);
+  solidMesh.scale.setScalar(0.97);
+  scene.add(solidMesh);
+
+  // Subtle glow core
+  const glowGeo = new THREE.SphereGeometry(0.18, 16, 16);
+  const glowMat = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.25});
+  const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+  scene.add(glowMesh);
+
+  let currentSpeedX = 0.004, currentSpeedY = 0.003;
+  let time = 0;
+
+  function animate(){
+    requestAnimationFrame(animate);
+    time += 0.016;
+
+    // Constant rotation
+    wireMesh.rotation.x += currentSpeedY;
+    wireMesh.rotation.y += currentSpeedX;
+    wireMesh.rotation.z += currentSpeedX * 0.3;
+    solidMesh.rotation.copy(wireMesh.rotation);
+    glowMesh.rotation.y += 0.01;
+
+    // Slow steady pulse — 4 second cycle
+    const pulse = 0.45 + Math.sin(time * 0.4) * 0.25;
+    wireMat.opacity = Math.min(1, pulse);
+    glowMat.opacity = 0.1 + Math.sin(time * 0.4) * 0.1;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Resize on window resize
+  window.addEventListener('resize', () => {
+    const s = Math.min(window.innerWidth * 0.7, 600);
+    renderer.setSize(s, s);
+  });
+})();
+
+
+</script>
+<!-- ACQUISITIONS MODAL -->
+<div class="mo" id="acq-mo" onclick="if(event.target===this)closeAcqModal()">
+  <div class="mb" style="max-width:600px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <div class="mt" style="margin:0" id="acq-mo-title">Acquisitions</div>
+      <button class="btn btn-sm" onclick="closeAcqModal()">Close</button>
+    </div>
+    <div id="acq-list"></div>
+  </div>
+</div>
+
+
+
+<!-- ISSUE MODAL -->
+<div class="mo" id="issue-mo" onclick="if(event.target===this)closeIssueModal()">
+  <div class="mb">
+    <div class="mt" id="issue-mo-title">Add Issue</div>
+    <div class="fg"><label>Issue (be specific — what exactly is the problem?)</label>
+      <textarea id="iss-text" placeholder="e.g. NDA process is taking too long and blocking data room access for 3 investors"></textarea>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Platform</label>
+        <select id="iss-platform">
+          <option value="hcg">HCG Enterprise</option>
+          <option value="industries">Hix Industries</option>
+          <option value="health">Hix Health</option>
+          <option value="financial">Hix Financial</option>
+          <option value="hixtech">HixTech</option>
+          <option value="terra">HixTerra</option>
+          <option value="capital">Hix Capital</option>
+        </select>
+      </div>
+      <div class="fg"><label>Priority</label>
+        <select id="iss-priority">
+          <option value="urgent">Urgent</option>
+          <option value="high">High</option>
+          <option value="med">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Status</label>
+        <select id="iss-status">
+          <option value="open">Open</option>
+          <option value="ids">In IDS (being discussed)</option>
+          <option value="solved">Solved</option>
+        </select>
+      </div>
+      <div class="fg"><label>Owner</label>
+        <select id="iss-owner"><option>Michael</option><option>Slade</option><option>Both</option><option>Team</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Solution / next action</label><textarea id="iss-solution" placeholder="What's the proposed solution or IDS outcome?"></textarea></div>
+    <div class="ma">
+      <button class="btn" onclick="closeIssueModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveIssue()">Save issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACQUISITION EDIT MODAL -->
+<div class="mo" id="acq-edit-mo" onclick="if(event.target===this)closeAcqEditModal()">
+  <div class="mb" style="max-width:580px">
+    <div class="mt" id="acq-edit-title">Add deal</div>
+    <div class="fr2">
+      <div class="fg"><label>Deal / target name</label><input type="text" id="ae-name" placeholder="Target A — Distribution"></div>
+      <div class="fg"><label>Platform</label>
+        <select id="ae-platform">
+          <option value="industries">Hix Industries</option>
+          <option value="health">Hix Health</option>
+          <option value="financial">Hix Financial</option>
+          <option value="hixtech">HixTech</option>
+          <option value="terra">HixTerra</option>
+          <option value="capital">Hix Capital</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Deal value</label><input type="text" id="ae-value" placeholder="$75M"></div>
+      <div class="fg"><label>Multiple / terms</label><input type="text" id="ae-multiple" placeholder="7x EBITDA"></div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label>Stage</label>
+        <select id="ae-stage">
+          <option value="sourcing">Sourcing</option>
+          <option value="loi">LOI</option>
+          <option value="diligence">Diligence</option>
+          <option value="negotiating">Negotiating</option>
+          <option value="closed">Closed</option>
+          <option value="operating">Operating</option>
+          <option value="planning">Planning</option>
+          <option value="dead">Dead</option>
+        </select>
+      </div>
+      <div class="fg"><label>Owner</label>
+        <select id="ae-owner"><option>Michael</option><option>Slade</option><option>Both</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Blocker / what's stopping progress</label>
+      <input type="text" id="ae-blocker" placeholder="e.g. Waiting on QoE, legal review pending...">
+    </div>
+    <div class="fg"><label>Next step</label>
+      <input type="text" id="ae-nextstep" placeholder="e.g. Schedule IC call, finalize reps & warranties...">
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="ae-notes" placeholder="Deal thesis, key facts, context..."></textarea></div>
+    <div class="ma">
+      <button class="btn" onclick="closeAcqEditModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveAcqEdit()">Save deal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACQUISITION DETAIL -->
+<div class="det-o" id="acq-det-o" onclick="if(event.target===this)closeAcqDet()">
+  <div class="det-b" id="acq-det-b"></div>
+</div>
+
+
+<script>
+// ── INTEL PANEL JS ────────────────────────────────────────
+var RSS_FEEDS={
+  markets:[
+    'https://news.google.com/rss/search?q=stock+market+business+finance+US&hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/search?q=S%26P500+nasdaq+dow+jones+economy&hl=en-US&gl=US&ceid=US:en',
+    'https://search.cnbc.com/rs/search/combinedcombined/search.xml?partnerId=wrss01&id=10001147'
+  ],
+  deals:[
+    'https://news.google.com/rss/search?q=merger+acquisition+private+equity+deal+United+States&hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/search?q=leveraged+buyout+LBO+PE+fund+investment+USA&hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/search?q=venture+capital+IPO+financing+United+States&hl=en-US&gl=US&ceid=US:en'
+  ],
+  health:[
+    'https://news.google.com/rss/search?q=healthcare+hospital+health+system+business+United+States&hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/search?q=healthcare+merger+acquisition+investment&hl=en-US&gl=US&ceid=US:en',
+    'https://www.modernhealthcare.com/rss/latest'
+  ],
+  arkansas:[
+    'https://news.google.com/rss/search?q=Arkansas+business+economy+company&hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/search?q=Arkansas+investment+development+industry&hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/search?q=Little+Rock+Arkansas+commerce+jobs&hl=en-US&gl=US&ceid=US:en'
+  ],
+  plastics:[
+    'https://news.google.com/rss/search?q=plastics+industry+United+States+manufacturing&hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/search?q=plastics+news+USA+recycling+polymer&hl=en-US&gl=US&ceid=US:en',
+    'https://www.plasticsnews.com/rss/news',
+    'https://news.google.com/rss/search?q=plastic+packaging+resin+compounding+America&hl=en-US&gl=US&ceid=US:en'
+  ]
+};
+var PROXY='https://api.allorigins.win/get?url=';
+var rssCache={};
+var currentFeed='markets';
+
+function switchFeed(key,el){
+  currentFeed=key;
+  var tabs=document.querySelectorAll('[onclick^="switchFeed"]');
+  tabs.forEach(function(t){t.style.color='var(--text-4)';t.style.borderBottomColor='transparent';});
+  if(el){el.style.color='var(--text)';el.style.borderBottomColor='var(--text)';}
+  loadRSSFeed(key);
+}
+
+function loadRSSFeed(key){
+  var ct=document.getElementById('rss-feed-container');
+  if(!ct)return;
+  if(rssCache[key]){renderRSS(rssCache[key]);return;}
+  ct.innerHTML='<div class="empty" style="padding:1rem 0">Loading...</div>';
+  var urls=RSS_FEEDS[key]||[];
+  var items=[];
+  var pending=urls.length;
+  if(pending===0){renderRSS([]);return;}
+  urls.forEach(function(url){
+    function done(){
+      pending--;
+      if(pending===0){
+        items.sort(function(a,b){return !a.pub?1:!b.pub?-1:new Date(b.pub)-new Date(a.pub);});
+        rssCache[key]=items.slice(0,20);
+        renderRSS(rssCache[key]);
+      }
+    }
+    fetch(PROXY+encodeURIComponent(url))
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var xml=new DOMParser().parseFromString(d.contents,'text/xml');
+      var src=xml.querySelector('channel > title')?xml.querySelector('channel > title').textContent.trim():'';
+      var entries=xml.querySelectorAll('item');
+      entries.forEach(function(item){
+        var title=item.querySelector('title')?item.querySelector('title').textContent.trim():'';
+        var link=item.querySelector('link')?item.querySelector('link').textContent.trim():'';
+        var desc=item.querySelector('description')?item.querySelector('description').textContent.replace(/<[^>]+>/g,'').trim():'';
+        var pub=item.querySelector('pubDate')?item.querySelector('pubDate').textContent.trim():'';
+        if(title&&link)items.push({title:title,link:link,desc:desc,pub:pub,src:src});
+      });
+      done();
+    })
+    .catch(function(){done();});
+  });
+}
+
+function tAgo(s){
+  if(!s)return'';
+  var d=Date.now()-new Date(s).getTime(),m=Math.floor(d/60000);
+  if(m<60)return m+'m ago';
+  var h=Math.floor(m/60);
+  return h<24?h+'h ago':Math.floor(h/24)+'d ago';
+}
+
+function renderRSS(items){
+  var ct=document.getElementById('rss-feed-container');
+  if(!ct)return;
+  if(!items.length){ct.innerHTML='<div class="empty" style="padding:1rem 0">No articles — check network or try Refresh</div>';return;}
+  ct.innerHTML='';
+  items.forEach(function(a){
+    var div=document.createElement('div');
+    div.style.cssText='padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer';
+    div.onmouseover=function(){this.style.background='var(--card2)';};
+    div.onmouseout=function(){this.style.background='';};
+    div.onclick=function(){window.open(a.link,'_blank');};
+    div.innerHTML='<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:4px">'+a.title+'</div>'
+      +(a.desc?'<div style="font-size:11px;color:var(--text-4);line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+a.desc.substring(0,160)+'</div>':'')
+      +'<div style="display:flex;gap:8px;align-items:center">'
+      +'<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);background:var(--card2);padding:1px 6px;border-radius:2px;border:1px solid var(--border)">'+a.src+'</span>'
+      +'<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-4)">'+tAgo(a.pub)+'</span>'
+      +'<span style="margin-left:auto;font-size:10px;color:var(--text-4)">&#8599;</span>'
+      +'</div>';
+    ct.appendChild(div);
+  });
+}
+
+function generateBriefing(){
+  var btn=document.querySelector('[onclick="generateBriefing()"]');
+  var box=document.getElementById('ai-briefing');
+  var txt=document.getElementById('ai-briefing-text');
+  if(!btn||!box||!txt)return;
+  btn.textContent='Generating...';btn.disabled=true;box.style.display='block';txt.textContent='';
+  var openT=tasks.filter(function(t){return !t.done;});
+  var urgT=tasks.filter(function(t){return t.urgent&&!t.done;});
+  var prompt='You are a business intelligence briefing system for Michael Hickmon, CEO of HCG. Today is '+DATE_STR+'. HCG platforms: Hix Industries ($89.87M SPV raise), Hix Health ($38.5M SPV), Hix Financial ($375M LOI on First Community Bank AR), HixTech (TrueWellth $300K acquisition), HOIT Group (AR hospitals). Urgent tasks: '+urgT.map(function(t){return t.text;}).join('; ')+'. Top priorities: '+openT.slice(0,5).map(function(t){return t.text;}).join('; ')+'. Write a sharp 200-word morning business intelligence briefing: (1) macro market conditions relevant to his raises, (2) M&A/PE trends, (3) one specific action recommendation. Direct, no fluff.';
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){txt.textContent=data.content&&data.content[0]?data.content[0].text:'Unavailable.';})
+  .catch(function(){txt.textContent='Network error. Ensure API access is configured.';});
+  btn.textContent='&#10022; AI Brief';btn.disabled=false;
+}
+
+// Auto-load on page ready
+window.addEventListener('load',function(){
+  setTimeout(function(){loadRSSFeed('markets');},800);
+});
+</script>
+
+</body>
+</html>
