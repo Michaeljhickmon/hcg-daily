@@ -247,6 +247,34 @@ select.fs:focus{outline:none;border-color:var(--border-hover)}
 .a-planning{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(68,136,255,0.15)}
 .a-dead{background:var(--urgent-dim);color:var(--urgent);border:1px solid rgba(255,51,51,0.15)}
 
+/* DEAL STATUS BADGES */
+.ds-prospect{background:#111;color:#666;border:1px solid #2a2a2a}
+.ds-outreach{background:rgba(77,166,255,0.08);color:#4da6ff;border:1px solid rgba(77,166,255,0.2)}
+.ds-nda{background:rgba(68,136,255,0.1);color:#4488ff;border:1px solid rgba(68,136,255,0.25)}
+.ds-loi-pending{background:rgba(255,204,0,0.08);color:#ffcc00;border:1px solid rgba(255,204,0,0.2)}
+.ds-loi-exec{background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.2)}
+.ds-dd{background:rgba(153,102,255,0.1);color:#9966ff;border:1px solid rgba(153,102,255,0.2)}
+.ds-pa{background:rgba(204,85,0,0.1);color:#cc5500;border:1px solid rgba(204,85,0,0.2)}
+.ds-signing{background:rgba(102,204,136,0.1);color:#66cc88;border:1px solid rgba(102,204,136,0.2)}
+.ds-closed{background:rgba(0,204,102,0.1);color:#00cc66;border:1px solid rgba(0,204,102,0.2)}
+.ds-hold{background:rgba(122,138,154,0.1);color:#7a8a9a;border:1px solid rgba(122,138,154,0.2)}
+.ds-dead{background:rgba(255,51,51,0.08);color:#ff3333;border:1px solid rgba(255,51,51,0.2)}
+/* DD TRACKER */
+.dd-progress-bar{height:4px;background:var(--border);border-radius:2px;margin:6px 0 14px;overflow:hidden}
+.dd-progress-fill{height:100%;border-radius:2px;background:var(--green);transition:width 0.3s}
+.dd-section{margin-bottom:3px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.dd-section-hdr{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;cursor:pointer;background:var(--card2);user-select:none;transition:background 0.1s}
+.dd-section-hdr:hover{background:var(--bg3)}
+.dd-section-title{font-family:var(--font-display);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-2)}
+.dd-section-meta{font-family:var(--font-mono);font-size:10px;color:var(--text-4);flex-shrink:0}
+.dd-section-body{padding:4px 0;display:none}
+.dd-section-body.open{display:block}
+.dd-item{display:flex;align-items:flex-start;gap:10px;padding:6px 14px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background 0.08s}
+.dd-item:last-child{border-bottom:none}
+.dd-item:hover{background:var(--bg3)}
+.dd-item-text{font-size:12px;color:var(--text-2);line-height:1.45;flex:1}
+.dd-item-text.done{text-decoration:line-through;color:var(--text-4)}
+
 /* MISC */
 .sec-div{font-family:var(--font-display);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-4);margin:1.5rem 0 0.75rem;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .today-badge{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-3);background:var(--bg2);padding:3px 10px;border-radius:2px;border:1px solid var(--border)}
@@ -753,6 +781,7 @@ select.fs:focus{outline:none;border-color:var(--border-hover)}
           <th onclick="sortAcq('platform',this)">Platform</th>
           <th onclick="sortAcq('value',this)">Value</th>
           <th onclick="sortAcq('stage',this)">Stage</th>
+          <th>Status</th>
           <th>Blocker / Next step</th>
           <th onclick="sortAcq('owner',this)">Owner</th>
           <th>Last update</th>
@@ -1628,14 +1657,35 @@ const ACQ_STAGES = ['sourcing','loi','diligence','negotiating','closed','operati
 const ACQ_ACTIVE = ['sourcing','loi','diligence','negotiating','planning'];
 const ACQ_STAGE_LABELS = {sourcing:'Sourcing',loi:'LOI',diligence:'Diligence',negotiating:'Negotiating',closed:'Closed',operating:'Operating',planning:'Planning',dead:'Dead'};
 const ACQ_STAGE_PILLS = {sourcing:'a-sourcing',loi:'a-loi',diligence:'a-diligence',negotiating:'a-negotiating',closed:'a-closed',operating:'a-operating',planning:'a-planning',dead:'a-dead'};
+const ACQ_STATUS_OPTIONS=['prospect','outreach','nda','loi-pending','loi-exec','dd','pa','signing','closed','hold','dead'];
+const ACQ_STATUS_LABELS_DS={prospect:'Prospect',outreach:'Outreach',nda:'NDA Executed','loi-pending':'LOI Pending','loi-exec':'LOI Executed',dd:'Due Diligence',pa:'Purchase Agreement',signing:'Signed / Closing',closed:'Closed',hold:'On Hold',dead:'Dead'};
+const ACQ_STATUS_PILLS={prospect:'ds-prospect',outreach:'ds-outreach',nda:'ds-nda','loi-pending':'ds-loi-pending','loi-exec':'ds-loi-exec',dd:'ds-dd',pa:'ds-pa',signing:'ds-signing',closed:'ds-closed',hold:'ds-hold',dead:'ds-dead'};
+
+const DD_SECTIONS=[
+  {title:'Executive Summary',items:['Transaction Snapshot completed','Key Findings & Headline Risks documented (3–5 findings)','Preliminary Recommendation stated (Proceed / Proceed with Conditions / Do Not Proceed)']},
+  {title:'Transaction Overview',items:['Deal structure documented (stock vs. asset sale, entities included/excluded)','Seller background documented (identity, history, motivation, advisor)','Transaction advisors and timeline confirmed (legal, QoE, LOI date, exclusivity, close date)','Proposed closing mechanics documented (purchase price, working capital peg, earnout, escrow, RWI)']},
+  {title:'Corporate & Legal Structure',items:['Legal entity org chart obtained and reviewed','Ownership structure and cap table confirmed','Articles of Incorporation / Operating Agreements reviewed for each entity','Authorized vs. issued shares/units confirmed','Outstanding options, warrants, or convertibles identified','Related-party entities identified and intercompany agreements reviewed','Intercompany balances confirmed for reconciliation at close','Corporate governance gaps identified (missing consents, board resolutions, good standing)','Prior M&A history reviewed']},
+  {title:'Business Overview & Industry Context',items:['Company history and key milestones documented','Products and services described and segmented by revenue contribution','Competitive positioning and moat analysis completed','Industry and end market context documented (growth rate, cyclicality, regulatory environment)']},
+  {title:'Financial Due Diligence',items:['QoE provider engaged and scope confirmed','Unadjusted EBITDA documented for minimum 3 years','Full adjusted EBITDA bridge completed with all adjustments itemized','Buyer\'s independent assessment of each QoE adjustment completed (accept/reject/modify)','Net revenue reconciled to income statement by year','Gross margin analyzed by year and product line','Revenue concentration and customer dependency risk flagged','Most recent audited balance sheet reviewed','Working capital peg proposed and methodology confirmed','AR aging, reserves, and disputes reviewed','Inventory valuation and obsolescence reserve reviewed','Fixed asset schedule reviewed (age, book vs. fair value)','CapEx history — maintenance vs. growth segregated','Off-balance-sheet liabilities identified','All debt instruments identified and quantified','Revolving credit facilities reviewed (maturity, availability, draw)','Term loan amortization and covenants reviewed','Shareholder/related-party notes reviewed and post-close treatment confirmed','Contingent liabilities identified (litigation, environmental, pension)','Net debt calculation confirmed for EV-to-equity bridge','Monthly management accounts reviewed (current year YTD)','Prior 2–3 years annual financials reviewed','Management projections received and key assumptions stress-tested','Seasonality analysis completed','Sensitivity analysis prepared (volume, price, input cost)','All related-party transactions listed and reviewed','Management fees structure and post-close elimination confirmed','Owner distributions 3-year history reviewed','Owner/family compensation normalized to FMV','Federal and state income tax returns reviewed (3 years)','Entity tax structure implications for buyer confirmed','State and local tax nexus analysis completed','Open tax years and active audits identified','Sales/use tax and payroll tax compliance confirmed','Tax credits, incentives, and government grants confirmed (no clawback risk)']},
+  {title:'Commercial Due Diligence',items:['Top 10 customers by revenue and % concentration documented','Customer tenure documented for key accounts','Customer contracts reviewed (term, renewal, change of control provisions)','Pricing dynamics and input cost pass-through assessed','Active sales pipeline quantified','Sales team structure and compensation model documented','Lost accounts and known attrition risk identified','All material supplier agreements reviewed','Anti-assignment and change of control provisions identified','Consent requirements and pre-close action plan documented','Sales rep agreements and commission tail exposure reviewed','Material contract expiration and renewal risk matrix completed','Organic growth initiatives identified','Capacity headroom for volume growth assessed','Cross-sell/up-sell and platform synergy opportunities documented']},
+  {title:'Operational Due Diligence',items:['Facility footprint documented (all locations, owned vs. leased)','Equipment profile assessed (age, capacity, condition)','Automation and technology level benchmarked to industry','Production capacity utilization and headroom documented','Quality control processes and certifications confirmed (ISO, etc.)','Environmental compliance and permits reviewed (no open violations)','Maintenance backlog and deferred CapEx estimated','Key raw materials and supplier count documented','Supplier concentration and single-source dependencies identified','Inventory buffer / safety stock policy reviewed','Freight and logistics cost structure documented','Input commodity price exposure and hedging reviewed','All facility leases reviewed (term, renewal, rent)','Owned real estate — title, liens, appraisal confirmed','Related-party leases normalized to FMV and post-close continuity confirmed','Lease assignment and landlord consent requirements identified','Environmental Phase I assessment completed or ordered','Deferred maintenance and required capital improvements estimated']},
+  {title:'Human Capital Due Diligence',items:['Total headcount documented by location, department, FT vs. PT','Turnover rate for last 12 months documented','Payroll tax filings reviewed (2 years)','Union status and any CBA or organizing activity confirmed','WARN Act exposure assessed','Top 5–10 critical employees identified','Employment agreements reviewed for each key employee','Severance obligations quantified','Non-compete and non-solicit provisions confirmed enforceable','All agreements confirmed assignable to buyer','Transaction/stay bonus exposure identified','Post-close retention plan developed for critical roles','Total compensation benchmarked to market','Health/dental/vision plan reviewed (provider, cost, renewal date)','401(k)/profit sharing plan reviewed and compliance confirmed','Defined benefit/pension obligations identified','Workers\' comp claims history reviewed (3 years)','Open workers\' comp claims identified and reserves estimated','Experience modification rate (EMR) benchmarked','Safety program and OSHA record reviewed']},
+  {title:'Intellectual Property',items:['Full IP listing reviewed (trademarks, patents, copyrights, trade secrets)','Trademark registrations confirmed active in all relevant jurisdictions','Patent portfolio reviewed (expiration dates, third-party challenges)','Proprietary technology/software ownership confirmed (no third-party encumbrances)','Domain names, social handles, and brand assets confirmed owned','All employee and contractor IP confirmed assigned to company','Post-close IP transfer mechanics confirmed (asset deal)','Open IP disputes or infringement claims identified','Owned tooling, molds, and dies valued and protected']},
+  {title:'Legal & Compliance Due Diligence',items:['Litigation search completed (federal, state, county)','All pending or threatened litigation disclosed and quantified','Judgment and lien search completed on all entities','AR disputes schedule reviewed','Prior settlements or consent decrees with ongoing obligations identified','Indemnification obligations reviewed','Business licenses and permits confirmed current and transferable','Industry-specific regulatory compliance confirmed (FDA, EPA, OSHA, etc.)','Good standing certificates obtained for all entities','OSHA/workplace safety record reviewed','Environmental permits current and no open violations confirmed','Data privacy/cybersecurity compliance confirmed (CCPA, HIPAA as applicable)','Export control/FCPA compliance confirmed (if international operations)','Anti-kickback/referral arrangements reviewed (healthcare deals)']},
+  {title:'Insurance',items:['Commercial general liability coverage and limits reviewed','Commercial property coverage and replacement cost confirmed','Workers\' compensation carrier and open claims reviewed','Business interruption coverage reviewed','D&O coverage and exclusions reviewed','Key person insurance amount and assignability confirmed','Product liability limits confirmed adequate','Cyber liability coverage confirmed (if applicable)','Professional liability/E&O reviewed (if applicable)','RWI under evaluation','No policies expiring within 60 days of close without confirmed renewal']},
+  {title:'Risk Summary',items:['All HIGH severity risks documented (deal-stoppers or price adjustments)','All MEDIUM severity risks documented (require mitigation or indemnity)','All LOW severity risks documented (monitoring items)','Recommended mitigation documented for each risk']},
+  {title:'Open Items & Information Requests',items:['All outstanding information requests logged','All requests confirmed as Requested / Received / Under Review / Closed','No critical open items remaining unresolved prior to LOI execution']},
+  {title:'Preliminary Valuation Framework',items:['Comparable transaction multiples sourced from relevant sector','HCG target multiple range documented','Multiple rationale documented (growth, margin quality, concentration, market size)','Enterprise Value bridge completed for Bear / Base / Bull cases','LOI price vs. recommended adjusted price documented','Earnout recommendation documented (Yes/No)','Escrow/holdback recommendation documented (Yes/No and amount)']},
+  {title:'Post-Acquisition Synergies',items:['Revenue synergies identified and quantified (Year 1 and Year 2)','Cost synergies identified and quantified (Year 1 and Year 2)','Capital/structural synergies identified and quantified','Key dependencies for each synergy documented','100-Day Integration Priorities documented (minimum 5 priorities)']}
+];
 
 let acquisitions = [
-  {id:1,name:'Edge Plastics',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
-  {id:2,name:'MCD Prime',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
-  {id:3,name:'Otto USA',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
-  {id:4,name:'PrimeCare',platform:'health',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
-  {id:5,name:'TrueWellth',platform:'hixtech',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
-  {id:6,name:'First Community Bank',platform:'financial',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:1,name:'Edge Plastics',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',dealStatus:'prospect',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:2,name:'MCD Prime',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',dealStatus:'prospect',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:3,name:'Otto USA',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',dealStatus:'prospect',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:4,name:'PrimeCare',platform:'health',value:'',valueSortable:0,multiple:'',stage:'sourcing',dealStatus:'prospect',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:5,name:'TrueWellth',platform:'hixtech',value:'',valueSortable:0,multiple:'',stage:'sourcing',dealStatus:'prospect',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
+  {id:6,name:'First Community Bank',platform:'financial',value:'',valueSortable:0,multiple:'',stage:'sourcing',dealStatus:'prospect',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
 ];
 
 
@@ -1755,19 +1805,33 @@ function rAcqTable(){
   });
   const tbody=document.getElementById('acq-tbody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No deals match</td></tr>';return;}
-  tbody.innerHTML=list.map(a=>`<tr onclick="openAcqDet(${a.id})" style="cursor:pointer">
+  tbody.innerHTML=list.map(a=>{
+    const st=a.dealStatus||'prospect';
+    return `<tr onclick="openAcqDet(${a.id})" style="cursor:pointer">
     <td><div class="inv-name">${a.name}</div></td>
     <td><span class="tag ${PLAT_TAGS[a.platform]||'tag-hcg'}">${PLAT_LABELS[a.platform]}</span></td>
     <td style="font-size:13px;font-weight:600">${fmtDeal$(a.value)}</td>
     <td><span class="pill ${ACQ_STAGE_PILLS[a.stage]}">${ACQ_STAGE_LABELS[a.stage]}</span></td>
+    <td onclick="event.stopPropagation()" style="white-space:nowrap">
+      <div style="position:relative;display:inline-block">
+        <span class="pill ${ACQ_STATUS_PILLS[st]}">${ACQ_STATUS_LABELS_DS[st]}</span>
+        <select onchange="setAcqStatus(${a.id},this.value)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
+          ${ACQ_STATUS_OPTIONS.map(s=>`<option value="${s}"${st===s?' selected':''}>${ACQ_STATUS_LABELS_DS[s]}</option>`).join('')}
+        </select>
+      </div>
+    </td>
     <td style="max-width:180px">
       ${a.blocker?`<span class="blocker" title="${a.blocker}">${a.blocker}</span>`:''}
       ${a.nextstep?`<div style="font-size:11px;color:var(--text-3);margin-top:2px">→ ${a.nextstep.substring(0,50)}${a.nextstep.length>50?'…':''}</div>`:''}
     </td>
     <td style="font-size:12px">${a.owner}</td>
     <td style="font-size:12px;color:var(--text-3)">${a.log&&a.log.length?a.log[a.log.length-1]:'—'}</td>
-    <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openAcqEditModal(${a.id})">Edit</button></td>
-  </tr>`).join('');
+    <td onclick="event.stopPropagation()" style="white-space:nowrap">
+      <button class="btn btn-sm" onclick="openAcqEditModal(${a.id})">Edit</button>
+      <button class="btn btn-sm" style="margin-left:4px" onclick="openDDModal(${a.id})">DD</button>
+    </td>
+  </tr>`;
+  }).join('');
 
   // Closed/operating table
   const closed=acquisitions.filter(a=>['closed','operating'].includes(a.stage));
@@ -1796,6 +1860,7 @@ function openAcqEditModal(id){
   document.getElementById('ae-value').value=a?a.value:'';
   document.getElementById('ae-multiple').value=a?a.multiple:'';
   document.getElementById('ae-stage').value=a?a.stage:'sourcing';
+  document.getElementById('ae-dealstatus').value=a?a.dealStatus||'prospect':'prospect';
   document.getElementById('ae-owner').value=a?a.owner:'Michael';
   document.getElementById('ae-blocker').value=a?a.blocker||'':'';
   document.getElementById('ae-nextstep').value=a?a.nextstep||'':'';
@@ -1807,7 +1872,7 @@ function saveAcqEdit(){
   const name=document.getElementById('ae-name').value.trim();if(!name)return;
   const valStr=document.getElementById('ae-value').value.trim();
   const valNum=parseFloat(valStr.replace(/[$MBK,]/g,''))||0;
-  const data={name,platform:document.getElementById('ae-platform').value,value:valStr,valueSortable:valNum,multiple:document.getElementById('ae-multiple').value.trim(),stage:document.getElementById('ae-stage').value,owner:document.getElementById('ae-owner').value,blocker:document.getElementById('ae-blocker').value.trim(),nextstep:document.getElementById('ae-nextstep').value.trim(),notes:document.getElementById('ae-notes').value.trim()};
+  const data={name,platform:document.getElementById('ae-platform').value,value:valStr,valueSortable:valNum,multiple:document.getElementById('ae-multiple').value.trim(),stage:document.getElementById('ae-stage').value,dealStatus:document.getElementById('ae-dealstatus').value,owner:document.getElementById('ae-owner').value,blocker:document.getElementById('ae-blocker').value.trim(),nextstep:document.getElementById('ae-nextstep').value.trim(),notes:document.getElementById('ae-notes').value.trim()};
   if(acqEid){const a=acquisitions.find(x=>x.id===acqEid);if(a){Object.assign(a,data);a.log.push('Updated — '+ACQ_STAGE_LABELS[data.stage]);}}
   else acquisitions.push({id:nAcqId++,...data,log:['Added']});
   closeAcqEditModal();renderAll();
@@ -2326,6 +2391,69 @@ function toggleDeliverableById(delId){
   if(found) renderAll();
 }
 
+// ─── DEAL STATUS ──────────────────────────────────────────────────────────────
+function setAcqStatus(id, status){
+  const a=acquisitions.find(x=>x.id===id);
+  if(a){a.dealStatus=status;saveAll();rAcqTable();}
+}
+
+// ─── DD TRACKER ───────────────────────────────────────────────────────────────
+let ddTracker={}, ddAcqId=null, ddSectionOpen={};
+
+function openDDModal(id){
+  ddAcqId=id; ddSectionOpen={};
+  renderDDModal();
+  document.getElementById('dd-mo').style.display='flex';
+}
+function closeDDModal(){
+  document.getElementById('dd-mo').style.display='none';
+  ddAcqId=null;
+}
+function toggleDDSection(si){
+  ddSectionOpen[si]=!ddSectionOpen[si];
+  renderDDModal();
+}
+function toggleDDItem(si,ii){
+  if(!ddAcqId)return;
+  if(!ddTracker[ddAcqId])ddTracker[ddAcqId]={};
+  const k=si+'-'+ii;
+  ddTracker[ddAcqId][k]=!ddTracker[ddAcqId][k];
+  saveAll();renderDDModal();
+}
+function renderDDModal(){
+  const a=acquisitions.find(x=>x.id===ddAcqId);if(!a)return;
+  const state=ddTracker[ddAcqId]||{};
+  let total=0,done=0;
+  DD_SECTIONS.forEach((sec,si)=>sec.items.forEach((_,ii)=>{total++;if(state[si+'-'+ii])done++;}));
+  const pct=total?Math.round((done/total)*100):0;
+  document.getElementById('dd-deal-name').textContent=a.name+' — DD Tracker';
+  document.getElementById('dd-pct').textContent=pct+'%';
+  document.getElementById('dd-fill').style.width=pct+'%';
+  document.getElementById('dd-count').textContent=done+' / '+total+' items complete';
+  document.getElementById('dd-content').innerHTML=DD_SECTIONS.map((sec,si)=>{
+    const secDone=sec.items.filter((_,ii)=>state[si+'-'+ii]).length;
+    const isOpen=!!ddSectionOpen[si];
+    return `<div class="dd-section">
+      <div class="dd-section-hdr" onclick="toggleDDSection(${si})">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:9px;color:var(--text-4)">${isOpen?'▼':'▶'}</span>
+          <span class="dd-section-title">${si+1}. ${sec.title}</span>
+        </div>
+        <span class="dd-section-meta">${secDone}/${sec.items.length}</span>
+      </div>
+      <div class="dd-section-body${isOpen?' open':''}">
+        ${sec.items.map((item,ii)=>{
+          const checked=!!state[si+'-'+ii];
+          return `<div class="dd-item" onclick="toggleDDItem(${si},${ii})">
+            <div class="task-check${checked?' checked':''}" style="flex-shrink:0;margin-top:2px"></div>
+            <div class="dd-item-text${checked?' done':''}">${item}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // CSS handled by main stylesheet
 function renderAll(){
   try{
@@ -2357,6 +2485,7 @@ function saveAll(){
   LS.save('acquisitions',acquisitions); LS.save('nAcqId',nAcqId);
   LS.save('projects',projects);     LS.save('nProjId',nProjId); LS.save('nMilId',nMilId); LS.save('nDelId',nDelId);
   LS.save('issues',issues);         LS.save('nIssueId',nIssueId);
+  LS.save('ddTracker',ddTracker);
 }
 function loadAll(){
   tasks       =LS.load('tasks',tasks);           nTaskId =LS.load('nTaskId',nTaskId);
@@ -2365,6 +2494,7 @@ function loadAll(){
   acquisitions=LS.load('acquisitions',acquisitions); nAcqId=LS.load('nAcqId',nAcqId);
   projects    =LS.load('projects',projects);     nProjId =LS.load('nProjId',nProjId); nMilId=LS.load('nMilId',nMilId); nDelId=LS.load('nDelId',nDelId);
   issues      =LS.load('issues',issues);         nIssueId=LS.load('nIssueId',nIssueId);
+  ddTracker   =LS.load('ddTracker',{});
 }
 loadAll();
 renderAll();
@@ -2751,9 +2881,25 @@ window.addEventListener('load',()=>{
           <option value="dead">Dead</option>
         </select>
       </div>
-      <div class="fg"><label>Owner</label>
-        <select id="ae-owner"><option>Michael</option><option>Slade</option><option>Both</option></select>
+      <div class="fg"><label>Deal Status</label>
+        <select id="ae-dealstatus">
+          <option value="prospect">Prospect</option>
+          <option value="outreach">Outreach</option>
+          <option value="nda">NDA Executed</option>
+          <option value="loi-pending">LOI Pending</option>
+          <option value="loi-exec">LOI Executed</option>
+          <option value="dd">Due Diligence</option>
+          <option value="pa">Purchase Agreement</option>
+          <option value="signing">Signed / Closing</option>
+          <option value="closed">Closed</option>
+          <option value="hold">On Hold</option>
+          <option value="dead">Dead</option>
+        </select>
       </div>
+    </div>
+    <div class="fg" style="margin-top:-6px">
+      <label>Owner</label>
+      <select id="ae-owner"><option>Michael</option><option>Slade</option><option>Both</option></select>
     </div>
     <div class="fg"><label>Blocker / what's stopping progress</label>
       <input type="text" id="ae-blocker" placeholder="e.g. Waiting on QoE, legal review pending...">
@@ -2772,6 +2918,22 @@ window.addEventListener('load',()=>{
 <!-- ACQUISITION DETAIL -->
 <div class="det-o" id="acq-det-o" onclick="if(event.target===this)closeAcqDet()">
   <div class="det-b" id="acq-det-b"></div>
+</div>
+
+<!-- DD TRACKER MODAL -->
+<div class="mo" id="dd-mo" onclick="if(event.target===this)closeDDModal()">
+  <div class="mb" style="max-width:680px;width:96%;max-height:88vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;flex-shrink:0">
+      <div class="mt" style="margin:0;border:none;padding:0;font-size:9px" id="dd-deal-name">DD Tracker</div>
+      <button class="btn" onclick="closeDDModal()">Close</button>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:10px;flex-shrink:0">
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--green);line-height:1" id="dd-pct">0%</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-4)" id="dd-count"></div>
+    </div>
+    <div class="dd-progress-bar" style="flex-shrink:0"><div class="dd-progress-fill" id="dd-fill" style="width:0%"></div></div>
+    <div id="dd-content" style="overflow-y:auto;flex:1"></div>
+  </div>
 </div>
 
 
@@ -2908,6 +3070,15 @@ function generateBriefing(){
 window.addEventListener('load',function(){
   setTimeout(function(){loadRSSFeed('markets');},800);
 });
+
+// Auto-refresh both feeds every 10 minutes
+setInterval(function(){
+  delete rssCache[currentFeed];
+  loadRSSFeed(currentFeed);
+  delete intelCache[INTEL_CATS[0].id];
+  delete intelCache[INTEL_CATS[1].id];
+  fetchIntel('brief');
+}, 600000);
 </script>
 
 </body>
