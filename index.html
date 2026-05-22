@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Indomitus">
+<meta name="apple-mobile-web-app-title" content="Jynx">
 <meta name="theme-color" content="#000000">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HCG Daily OS — Michael Hickmon</title>
@@ -418,7 +418,7 @@ select.fs:focus{outline:none;border-color:var(--border-hover)}
 <div id="hero-section">
   <canvas id="hero-canvas"></canvas>
   <div id="hero-title">
-    <span class="main">Indomitus Interface</span>
+    <span class="main">Jynx Interface</span>
   </div>
 </div>
 
@@ -1923,7 +1923,7 @@ const projects = [
   {id:4,name:'Micro Hospital',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'med',outcome:'',notes:'Greenfield — community-based micro hospital expansion',milestones:[],nextstep:''},
   {id:5,name:'Therapy App',platform:'health',owner:'Michael',rockId:null,due:'',status:'active',priority:'med',outcome:'',notes:'Greenfield — behavioral health therapy application',milestones:[],nextstep:''},
   {id:6,name:'HOIT Group',platform:'capital',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'Define HOIT mandate, service offering, fee structure, and first engagement',notes:'Ops improvement · deal sourcing · AR hospitals first target · feeds governor initiative',milestones:[],nextstep:''},
-  {id:7,name:'Project Indomitus',platform:'hixtech',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'Build a voice-powered AI operating system that runs HCG — reads the dashboard, processes emails, takes actions, and responds like Jarvis',notes:'Voice interface powered by Claude + ElevenLabs TTS + Whisper STT. Sits on top of the HCG dashboard backend. Assign to TrueWellth developer post-acquisition close. Full build estimate: 60-90 days once foundation is in place.',milestones:[],nextstep:''},
+  {id:7,name:'Project Jynx',platform:'hixtech',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'Build a voice-powered AI operating system that runs HCG — reads the dashboard, processes emails, takes actions, and responds like Jarvis',notes:'Voice interface powered by Claude + ElevenLabs TTS + Whisper STT. Sits on top of the HCG dashboard backend. Assign to TrueWellth developer post-acquisition close. Full build estimate: 60-90 days once foundation is in place.',milestones:[],nextstep:''},
 ];
 let nMilId = 30, nDelId = 30;
 
@@ -2352,12 +2352,12 @@ window.dodecaGlowBoost=0;
 let _pulseInt=null;
 function _startPulse(){let t=0;_pulseInt=setInterval(()=>{t+=0.15;window.dodecaGlowBoost=0.5+Math.sin(t*3.5)*0.5;},30);}
 function _stopPulse(){clearInterval(_pulseInt);window.dodecaGlowBoost=0;}
-function speakIndomitus(){
+function speakJynx(){
   if(voiceCooldown)return;
   voiceCooldown=true;
   setTimeout(()=>{voiceCooldown=false;},8000);
   const msg=new SpeechSynthesisUtterance();
-  msg.text="Indomitus active. All hail Midas.";
+  msg.text="Jynx active. All hail Midas.";
   msg.volume=1;msg.rate=0.88;msg.pitch=0.85;
   const voices=window.speechSynthesis.getVoices();
   const pref=['Google UK English Male','Daniel','Microsoft George','Arthur','Microsoft Mark','Microsoft David','Alex'];
@@ -2374,7 +2374,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const bv=document.getElementById('view-brief');
   if(bv)bv.addEventListener('click',(e)=>{
     if(e.target.closest('.card,.mb,.det-b,.mo,.det-o,button,select,input,a'))return;
-    speakIndomitus();
+    speakJynx();
   });
 });
 
