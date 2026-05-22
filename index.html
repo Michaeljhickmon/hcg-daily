@@ -1021,7 +1021,7 @@ let nTaskId=100, nInvId=20, nDrId=10, taskEid=null, invEid=null;
 let invSortCol='momentum', invSortAsc=false;
 
 // ─── TASKS DATA ───────────────────────────────────────────────────────────
-const tasks = [
+let tasks = [
   // Today — urgent
   {id:1,text:'CTS Capital Payment — Arrange',type:'business',platform:'capital',due:'2026-05-19',urgent:true,priority:'urgent',owner:'Michael',notes:'',done:false},
   {id:2,text:'Send THRIVE grant to Slade for review',type:'business',platform:'health',due:'2026-05-19',urgent:true,priority:'urgent',owner:'Michael',notes:'',done:false},
@@ -1050,7 +1050,7 @@ const tasks = [
 ];
 
 // ─── INVESTOR DATA ────────────────────────────────────────────────────────
-const investors = [
+let investors = [
   {id:1,name:'Banner Ridge Partners',contact:'CJ Driessen',type:'Credit Fund',raise:'industries',amount:0,stage:'diligence',nda:'shared',access:'no',owner:'Michael',lastcontact:3,blocker:'NDA not fully executed — blocking data room access',notes:'Meeting complete. NDA shared but not fully executed.',passreason:'',log:['Meeting complete','NDA shared — awaiting execution'],nextstep:'NDA not fully executed — blocking data room access'},
   {id:2,name:'Genesis Park Capital',contact:'Simon Haidamous',type:'PE Fund',raise:'industries',amount:0,stage:'pass-us',nda:'full',access:'no',owner:'Michael',lastcontact:14,blocker:'',notes:'Not a good fit — our decision.',passreason:'Not the right fit for this raise — our decision',log:['Meeting complete','NDA executed','Removed — not a fit (our decision)'],nextstep:''},
   {id:3,name:'Star Mountain Capital',contact:'John McCarty',type:'Credit Fund',raise:'industries',amount:0,stage:'diligence',nda:'full',access:'yes',owner:'Michael',lastcontact:7,blocker:'Unknown — need to call and find out where they are',notes:'Meeting complete. NDA fully executed. Data room access granted.',passreason:'',log:['Meeting complete','NDA executed','Data room access granted'],nextstep:'Unknown — need to call and find out where they are'},
@@ -1082,7 +1082,7 @@ const investors = [
   },
 ];
 
-const dataRequests = [];
+let dataRequests = [];
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────
 function mom(i){if(['pass-known','pass-unknown','pass-us','hold'].includes(i.stage))return'gray';if(i.lastcontact<=3)return'green';if(i.lastcontact<=10)return'yellow';return'red';}
@@ -1186,7 +1186,7 @@ function deleteTask(id){
   const t=tasks.find(x=>x.id===id);if(!t)return;
   if(!confirm('Delete "'+t.text.substring(0,60)+(t.text.length>60?'…':'')+'"?'))return;
   tasks.splice(tasks.indexOf(t),1);
-  rExec();rBriefMets();rPlatTasks();rPersonal();
+  saveAll();rExec();rBriefMets();rPlatTasks();rPersonal();
 }
 
 // ─── PLATFORM METRICS ────────────────────────────────────────────────────
@@ -1444,7 +1444,7 @@ function rDR(){
     (done.length?`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-3);margin:1.25rem 0 6px">Fulfilled</div>${renderItems(done)}`:'');
   document.getElementById('dr-done').innerHTML='';
 }
-function fulfillDR(id){const r=dataRequests.find(d=>d.id===id);if(r)r.done=true;rDR();}
+function fulfillDR(id){const r=dataRequests.find(d=>d.id===id);if(r){r.done=true;saveAll();}rDR();}
 
 // ─── TASK MODAL ───────────────────────────────────────────────────────────
 function openTaskModal(type){
@@ -1573,7 +1573,7 @@ function toggleLPItem(invId, section, idx){
   const i=investors.find(x=>x.id===invId);
   if(!i||!i.lpChecklist) return;
   i.lpChecklist[section][idx].done = !i.lpChecklist[section][idx].done;
-  openInvDet(invId);
+  saveAll();openInvDet(invId);
 }
 function advanceInv(id){
   const i=investors.find(x=>x.id===id);if(!i)return;
@@ -1619,7 +1619,7 @@ function switchPlatTab(id, el){
 
 // ─── ISSUES DATA ──────────────────────────────────────────────────────────
 let nIssueId = 30, issueEid = null;
-const issues = [
+let issues = [
 ];
 
 // ─── ACQUISITION TRACKER DATA ─────────────────────────────────────────────
@@ -1629,7 +1629,7 @@ const ACQ_ACTIVE = ['sourcing','loi','diligence','negotiating','planning'];
 const ACQ_STAGE_LABELS = {sourcing:'Sourcing',loi:'LOI',diligence:'Diligence',negotiating:'Negotiating',closed:'Closed',operating:'Operating',planning:'Planning',dead:'Dead'};
 const ACQ_STAGE_PILLS = {sourcing:'a-sourcing',loi:'a-loi',diligence:'a-diligence',negotiating:'a-negotiating',closed:'a-closed',operating:'a-operating',planning:'a-planning',dead:'a-dead'};
 
-const acquisitions = [
+let acquisitions = [
   {id:1,name:'Edge Plastics',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
   {id:2,name:'MCD Prime',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
   {id:3,name:'Otto USA',platform:'industries',value:'',valueSortable:0,multiple:'',stage:'sourcing',owner:'Michael',blocker:'',nextstep:'',notes:'',log:['Added']},
@@ -1897,7 +1897,7 @@ function rPlatScorecard(){
 
 // ─── PROJECTS DATA ────────────────────────────────────────────────────────
 let nProjId = 50, projEid = null;
-const projects = [
+let projects = [
   // ─── LEGAL DOCS ───────────────────────────────────────────────────────────
   {id:20,name:'Hix Industries — Legal Docs',platform:'industries',owner:'Michael',rockId:null,due:'',status:'active',priority:'high',outcome:'All org docs, operating agreement, SPV agreement, and subscription agreement fully executed',notes:'Required legal foundation for the Industries SPV raise',milestones:[
     {id:200,text:'Org docs',due:'',done:false,deliverables:[]},
@@ -2341,9 +2341,32 @@ function renderAll(){
   rPlatMets();rPlatformCards();rPlatTasks();rIssues();rAcqMets();rAcqTable();rPlatScorecard();
   rInvMets();rInvInsight();rFunnel();rInvTable();
   rPersonal();rDR();rProjects();
+  saveAll();
 }
 function rExec(){ rExecUpdated(); }
 
+// ─── LOCALSTORAGE PERSISTENCE ──────────────────────────────────────────────
+const LS={
+  save(key,val){try{localStorage.setItem('hcg_'+key,JSON.stringify(val));}catch(e){}},
+  load(key,def){try{const v=localStorage.getItem('hcg_'+key);return v!=null?JSON.parse(v):def;}catch(e){return def;}}
+};
+function saveAll(){
+  LS.save('tasks',tasks);           LS.save('nTaskId',nTaskId);
+  LS.save('investors',investors);   LS.save('nInvId',nInvId);
+  LS.save('dataRequests',dataRequests); LS.save('nDrId',nDrId);
+  LS.save('acquisitions',acquisitions); LS.save('nAcqId',nAcqId);
+  LS.save('projects',projects);     LS.save('nProjId',nProjId); LS.save('nMilId',nMilId); LS.save('nDelId',nDelId);
+  LS.save('issues',issues);         LS.save('nIssueId',nIssueId);
+}
+function loadAll(){
+  tasks       =LS.load('tasks',tasks);           nTaskId =LS.load('nTaskId',nTaskId);
+  investors   =LS.load('investors',investors);   nInvId  =LS.load('nInvId',nInvId);
+  dataRequests=LS.load('dataRequests',dataRequests); nDrId=LS.load('nDrId',nDrId);
+  acquisitions=LS.load('acquisitions',acquisitions); nAcqId=LS.load('nAcqId',nAcqId);
+  projects    =LS.load('projects',projects);     nProjId =LS.load('nProjId',nProjId); nMilId=LS.load('nMilId',nMilId); nDelId=LS.load('nDelId',nDelId);
+  issues      =LS.load('issues',issues);         nIssueId=LS.load('nIssueId',nIssueId);
+}
+loadAll();
 renderAll();
 
 // ── JARVIS VOICE ─────────────────────────────────────────
