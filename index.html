@@ -483,9 +483,9 @@ select.fs:focus{outline:none;border-color:var(--border-hover)}
   <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;box-shadow:var(--shadow)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em">📅 Today's Schedule</div>
-      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-4)" id="sched-date-label"></span>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-4)" id="sched-date-label">synced from Outlook</span>
     </div>
-    <div id="cal-events"><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);padding:8px 0">No events — add via WIT each morning</div></div>
+    <div id="cal-events"></div>
   </div>
 
   <!-- METRICS ROW -->
@@ -1025,8 +1025,31 @@ const DATE_STR = TODAY.toLocaleDateString('en-US',{weekday:'long',month:'long',d
 document.getElementById('top-date').textContent = DATE_STR;
 document.addEventListener('DOMContentLoaded',()=>{
   const lbl=document.getElementById('sched-date-label');
-  if(lbl) lbl.textContent=TODAY.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  if(lbl) lbl.textContent='synced from Outlook';
+  renderOutlookCalendar();
 });
+
+// ─── OUTLOOK CALENDAR ─────────────────────────────────────────────────────
+// Populated by Claude daily via MS365 MCP — each entry: {start,end,title,allDay}
+const OUTLOOK_EVENTS = [];
+
+function renderOutlookCalendar() {
+  const el = document.getElementById('cal-events');
+  if (!el) return;
+  if (!OUTLOOK_EVENTS.length) {
+    el.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);padding:8px 0">No events today</div>';
+    return;
+  }
+  el.innerHTML = OUTLOOK_EVENTS.map((ev, i) => {
+    const timeStr = ev.allDay ? 'All day' : ev.start;
+    const sep = i < OUTLOOK_EVENTS.length - 1 ? 'border-bottom:0.5px solid var(--border-light);' : '';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;${sep}">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);min-width:58px;text-align:right;flex-shrink:0">${timeStr}</div>
+      <div style="width:2px;height:28px;background:var(--blue);border-radius:1px;flex-shrink:0"></div>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.3">${ev.title}</div>
+    </div>`;
+  }).join('');
+}
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────
 const PLAT_LABELS={industries:'Hix Industries',health:'Hix Health',financial:'Hix Financial',hixtech:'HixTech',capital:'Hix Capital',terra:'HixTerra',hcg:'HCG Enterprise',personal:'Personal'};
